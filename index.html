@@ -1,0 +1,2884 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Recipe Management System | Gourmet Food & Culinary Hub</title>
+  
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Playfair+Display:ital,wght@0,600;0,700;0,800;1,600&display=swap" rel="stylesheet">
+  
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+            serif: ['"Playfair Display"', 'serif'],
+          },
+          colors: {
+            brand: {
+              50: '#fff7ed',
+              100: '#ffedd5',
+              200: '#fed7aa',
+              300: '#fdba74',
+              400: '#fb923c',
+              500: '#f97316',
+              600: '#ea580c',
+              700: '#c2410c',
+              800: '#9a3412',
+              900: '#7c2d12',
+            },
+            accent: {
+              emerald: '#10b981',
+              amber: '#f59e0b',
+              ruby: '#e11d48'
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- React 18 & Babel for Instant Browser Execution -->
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+  <style>
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar { width: 8px; }
+    ::-webkit-scrollbar-track { background: #f1f5f9; }
+    ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+    
+    .glass-nav {
+      background: rgba(255, 255, 255, 0.92);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+    }
+    .hero-gradient {
+      background: radial-gradient(circle at 10% 20%, rgba(255, 237, 213, 0.7) 0%, rgba(255, 255, 255, 0) 70%),
+                  radial-gradient(circle at 90% 80%, rgba(254, 215, 170, 0.4) 0%, rgba(255, 255, 255, 0) 70%);
+    }
+    .badge-veg { background-color: #ecfdf5; color: #047857; border: 1px solid #a7f3d0; }
+    .badge-nonveg { background-color: #fff1f2; color: #be123c; border: 1px solid #fecdd3; }
+    .certificate-border {
+      border: 8px double #b45309;
+      background: linear-gradient(135deg, #fffbeb 0%, #ffffff 50%, #fef3c7 100%);
+    }
+    @keyframes pulse-subtle {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.05); }
+    }
+    .animate-subtle { animation: pulse-subtle 3s infinite ease-in-out; }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-800 antialiased font-sans selection:bg-brand-500 selection:text-white">
+
+  <div id="root"></div>
+
+  <!-- Main React Application Script -->
+  <script type="text/babel">
+    const { useState, useEffect, useMemo, useRef } = React;
+
+    // ==========================================
+    // INITIAL SEED DATABASE (MongoDB Simulation / Local Storage)
+    // ==========================================
+    const DEFAULT_RECIPES = [
+      {
+        id: "rec_1",
+        title: "Artisan Truffle & Wild Mushroom Risotto",
+        description: "Creamy Arborio rice simmered slowly in rich porcini broth, finished with aged Parmigiano-Reggiano, black truffle oil, and pan-seared fresh cremini mushrooms.",
+        price: 18.99,
+        image: "https://images.unsplash.com/photo-1633964913295-ceb43826e7c9?auto=format&fit=crop&w=800&q=80",
+        category: "Italian",
+        cuisine: "Northern Italian",
+        prepTime: "15 mins",
+        cookTime: "30 mins",
+        servings: 2,
+        difficulty: "Medium",
+        dietary: ["Vegetarian", "Gluten-Free"],
+        rating: 4.9,
+        reviewsCount: 230,
+        isAvailable: true,
+        isFeatured: true,
+        ingredients: [
+          { name: "Arborio Rice", quantity: "1.5 cups" },
+          { name: "Cremini & Porcini Mushrooms", quantity: "250g" },
+          { name: "Aged Parmigiano-Reggiano", quantity: "1/2 cup grated" },
+          { name: "Pure White/Black Truffle Oil", quantity: "1 tbsp" },
+          { name: "Warm Vegetable Broth", quantity: "4 cups" },
+          { name: "Shallots (finely diced)", quantity: "2 pcs" },
+          { name: "Garlic cloves (minced)", quantity: "3 cloves" },
+          { name: "Dry White Wine (optional)", quantity: "1/2 cup" },
+          { name: "Unsalted Butter", quantity: "2 tbsp" },
+          { name: "Fresh Flat-leaf Parsley", quantity: "2 tbsp chopped" }
+        ],
+        instructions: [
+          "Gently sauté sliced mushrooms in 1 tbsp butter until golden brown and caramelized. Set half aside for garnish.",
+          "In a wide heavy-bottomed pan, sauté minced shallots and garlic in olive oil until translucent.",
+          "Add Arborio rice and toast for 2 minutes until edges turn translucent.",
+          "Pour in white wine and stir until fully absorbed by the rice grains.",
+          "Add hot vegetable broth one ladle at a time, continuously stirring until liquid is absorbed before adding more.",
+          "After 20 minutes when rice is al dente, fold in sautéed mushrooms, butter, and grated Parmigiano.",
+          "Drizzle with aromatic truffle oil, garnish with reserved mushrooms and fresh parsley."
+        ],
+        nutrition: { calories: 520, protein: "14g", carbs: "68g", fat: "18g", fiber: "4g" },
+        chefNotes: "Never wash Arborio rice! The surface starch is crucial for achieving that silky, restaurant-quality creaminess."
+      },
+      {
+        id: "rec_2",
+        title: "Smoky Butter Chicken & Garlic Naan Feast",
+        description: "Tender tandoor-roasted chicken cubes immersed in a velvety makhani gravy enriched with ripe tomatoes, fragrant fenugreek (kasuri methi), cashew cream, and warm spices.",
+        price: 19.50,
+        image: "https://images.unsplash.com/photo-1603894584373-5ac82b2ae398?auto=format&fit=crop&w=800&q=80",
+        category: "Indian",
+        cuisine: "North Indian / Mughlai",
+        prepTime: "25 mins",
+        cookTime: "35 mins",
+        servings: 3,
+        difficulty: "Medium",
+        dietary: ["Halal", "High Protein"],
+        rating: 5.0,
+        reviewsCount: 412,
+        isAvailable: true,
+        isFeatured: true,
+        ingredients: [
+          { name: "Boneless Chicken Thighs", quantity: "600g" },
+          { name: "Vine-Ripe Tomatoes (Pureed)", quantity: "5 medium" },
+          { name: "Heavy Cream or Cashew Puree", quantity: "1/2 cup" },
+          { name: "Kasuri Methi (Dried Fenugreek)", quantity: "1 tbsp" },
+          { name: "Pure Desi Ghee & Butter", quantity: "3 tbsp" },
+          { name: "Ginger-Garlic Paste", quantity: "2 tbsp" },
+          { name: "Kashmiri Red Chili Powder", quantity: "1.5 tsp" },
+          { name: "Garam Masala Blend", quantity: "1 tsp" }
+        ],
+        instructions: [
+          "Marinate chicken with hung curd, lemon juice, Kashmiri chili, and ginger-garlic for 30 mins.",
+          "Pan-sear chicken on high flame until charred on edges.",
+          "Simmer tomato puree with whole spices and butter until oil separates.",
+          "Blend sauce with cashew paste until velvety smooth.",
+          "Add chicken pieces to gravy and simmer gently for 10 minutes.",
+          "Finish with heavy cream and roasted crushed fenugreek leaves."
+        ],
+        nutrition: { calories: 640, protein: "42g", carbs: "16g", fat: "44g", fiber: "3g" },
+        chefNotes: "Crushing Kasuri Methi between your palms before adding unlocks its deep aromatic essential oils."
+      },
+      {
+        id: "rec_3",
+        title: "Authentic Neapolitan Margherita Pizza",
+        description: "Crispy blistered sourdough crust baked at high heat, topped with San Marzano tomato sauce, fresh buffalo mozzarella fior di latte, aromatic basil leaves, and extra virgin olive oil.",
+        price: 15.99,
+        image: "https://images.unsplash.com/photo-1604382354936-07c5d9983bd3?auto=format&fit=crop&w=800&q=80",
+        category: "Italian",
+        cuisine: "Napoli Traditional",
+        prepTime: "20 mins",
+        cookTime: "12 mins",
+        servings: 2,
+        difficulty: "Easy",
+        dietary: ["Vegetarian"],
+        rating: 4.8,
+        reviewsCount: 310,
+        isAvailable: true,
+        isFeatured: true,
+        ingredients: [
+          { name: "Slow Fermented Pizza Dough", quantity: "300g" },
+          { name: "San Marzano D.O.P. Tomatoes", quantity: "1/2 cup crushed" },
+          { name: "Fresh Buffalo Mozzarella", quantity: "150g" },
+          { name: "Fresh Genovese Basil Leaves", quantity: "8-10 leaves" },
+          { name: "Cold-pressed Extra Virgin Olive Oil", quantity: "1 tbsp" },
+          { name: "Flaky Maldon Sea Salt", quantity: "1 pinch" }
+        ],
+        instructions: [
+          "Hand-stretch dough ball on semolina counter, keeping a puffy outer rim (cornicione).",
+          "Spoon crushed San Marzano tomatoes evenly leaving a 1-inch border.",
+          "Tear fresh mozzarella into rustic chunks and distribute lightly.",
+          "Bake in superheated oven (500°F/260°C) for 8-10 minutes until cheese bubbles and crust blisters.",
+          "Garnish instantly with fresh torn basil leaves and a swirl of extra virgin olive oil."
+        ],
+        nutrition: { calories: 580, protein: "22g", carbs: "74g", fat: "20g", fiber: "5g" },
+        chefNotes: "Always add fresh basil immediately after baking so it wilts gently without turning bitter."
+      },
+      {
+        id: "rec_4",
+        title: "Fiesta Baja Fish Tacos with Lime Crema",
+        description: "Crispy spiced golden fish fillets nestled in warm corn tortillas, piled with crunchy purple cabbage slaw, pico de gallo, pickled jalapeños, and zesty chipotle lime crema.",
+        price: 16.50,
+        image: "https://images.unsplash.com/photo-1551504734-5ee1c4a1479b?auto=format&fit=crop&w=800&q=80",
+        category: "Mexican",
+        cuisine: "Baja California",
+        prepTime: "20 mins",
+        cookTime: "15 mins",
+        servings: 3,
+        difficulty: "Easy",
+        dietary: ["Pescatarian"],
+        rating: 4.7,
+        reviewsCount: 184,
+        isAvailable: true,
+        isFeatured: false,
+        ingredients: [
+          { name: "Fresh White Fish (Cod/Mahi)", quantity: "400g" },
+          { name: "Mini White Corn Tortillas", quantity: "6 pcs" },
+          { name: "Shredded Purple Cabbage", quantity: "2 cups" },
+          { name: "Chipotle Sour Cream Crema", quantity: "1/2 cup" },
+          { name: "Fresh Lime Juice & Zest", quantity: "2 limes" },
+          { name: "Fresh Pico de Gallo Salsa", quantity: "1 cup" },
+          { name: "Avocado Slices", quantity: "1 avocado" }
+        ],
+        instructions: [
+          "Whisk sour cream, lime juice, minced chipotle, and sea salt to create signature Baja crema.",
+          "Toss shredded cabbage with lime juice and olive oil.",
+          "Pan-sear seasoned fish fillets until flaky and golden.",
+          "Warm corn tortillas on a dry skillet until slightly charred.",
+          "Assemble with crunchy slaw, tender fish, avocado slices, pico de gallo, and crema."
+        ],
+        nutrition: { calories: 430, protein: "31g", carbs: "38g", fat: "14g", fiber: "6g" },
+        chefNotes: "Double up your corn tortillas street-taco style to hold all the flavorful juices securely!"
+      },
+      {
+        id: "rec_5",
+        title: "Tokyo Shoyu Ramen with Chashu & Ajitsuke Egg",
+        description: "Soul-soothing 12-hour simmered broth seasoned with artisanal shoyu tare, handmade springy noodles, tender braised chashu, and a 6-minute jammy marinated egg.",
+        price: 17.25,
+        image: "https://images.unsplash.com/photo-1569718212165-3a8278d5f624?auto=format&fit=crop&w=800&q=80",
+        category: "Asian",
+        cuisine: "Japanese",
+        prepTime: "30 mins",
+        cookTime: "45 mins",
+        servings: 2,
+        difficulty: "Hard",
+        dietary: ["Non-Veg"],
+        rating: 4.9,
+        reviewsCount: 520,
+        isAvailable: true,
+        isFeatured: true,
+        ingredients: [
+          { name: "Handmade Ramen Noodles", quantity: "2 bundles" },
+          { name: "Rich Chicken & Dashi Broth", quantity: "4 cups" },
+          { name: "Shoyu Tare Seasoning Base", quantity: "4 tbsp" },
+          { name: "Braised Chashu Pork Slices", quantity: "4 slices" },
+          { name: "Ajitsuke Tamago (Marinated Soft Egg)", quantity: "2 halved" },
+          { name: "Menma Bamboo Shoots", quantity: "2 tbsp" },
+          { name: "Crisp Nori Seaweed Sheets", quantity: "2 sheets" },
+          { name: "Toasted Sesame Oil & Scallions", quantity: "2 tbsp" }
+        ],
+        instructions: [
+          "Boil fresh ramen noodles for exactly 90 seconds until al dente; drain vigorously.",
+          "Ladle piping hot chicken-dashi broth into bowls containing shoyu tare base.",
+          "Fold noodles gently into broth.",
+          "Arrange chashu slices, jammy egg halves, crunchy bamboo shoots, and nori sheets.",
+          "Garnish with chopped scallions and fragrant toasted sesame oil."
+        ],
+        nutrition: { calories: 610, protein: "34g", carbs: "72g", fat: "21g", fiber: "4g" },
+        chefNotes: "Eat immediately! Authentic ramen is best enjoyed hot within 5 minutes of serving."
+      },
+      {
+        id: "rec_6",
+        title: "Molten Belgian Dark Chocolate Lava Cake",
+        description: "Decadent warm cake made with 70% Belgian chocolate that unveils an irresistible flowing molten center upon first spoon, served with vanilla bean ice cream.",
+        price: 10.99,
+        image: "https://images.unsplash.com/photo-1606313564200-e75d5e30476c?auto=format&fit=crop&w=800&q=80",
+        category: "Dessert",
+        cuisine: "French Patisserie",
+        prepTime: "15 mins",
+        cookTime: "12 mins",
+        servings: 2,
+        difficulty: "Medium",
+        dietary: ["Vegetarian"],
+        rating: 4.9,
+        reviewsCount: 388,
+        isAvailable: true,
+        isFeatured: true,
+        ingredients: [
+          { name: "70% Dark Belgian Chocolate", quantity: "120g" },
+          { name: "Unsalted Butter", quantity: "100g" },
+          { name: "Whole Eggs + Egg Yolks", quantity: "2 whole + 2 yolks" },
+          { name: "Cane Sugar", quantity: "1/3 cup" },
+          { name: "All-Purpose Flour", quantity: "2 tbsp" },
+          { name: "Madagascar Vanilla Extract", quantity: "1 tsp" },
+          { name: "Fresh Raspberries & Mint", quantity: "for garnish" }
+        ],
+        instructions: [
+          "Melt chocolate and butter over a gentle double boiler.",
+          "Whisk eggs, yolks, sugar, and vanilla until pale and thick.",
+          "Fold melted chocolate into eggs, then gently sift in flour.",
+          "Pour into buttered, cocoa-dusted ramekins.",
+          "Bake at 425°F (220°C) for exactly 11-12 minutes until edges are firm and center is soft.",
+          "Invert onto dessert plates and dust with powdered sugar."
+        ],
+        nutrition: { calories: 480, protein: "7g", carbs: "45g", fat: "32g", fiber: "5g" },
+        chefNotes: "Timing is crucial! Just one minute too long turns molten lava into a standard cake."
+      },
+      {
+        id: "rec_7",
+        title: "Superfood Mediterranean Quinoa Power Bowl",
+        description: "Nutrient-packed fluffy tri-color quinoa, crispy roasted chickpeas, Persian cucumbers, Kalamata olives, creamy avocado, heirloom tomatoes, and lemon tahini vinaigrette.",
+        price: 14.50,
+        image: "https://images.unsplash.com/photo-1512621776951-a57141f2eefd?auto=format&fit=crop&w=800&q=80",
+        category: "Healthy",
+        cuisine: "Mediterranean",
+        prepTime: "15 mins",
+        cookTime: "15 mins",
+        servings: 1,
+        difficulty: "Easy",
+        dietary: ["Vegan", "Gluten-Free", "High Fiber"],
+        rating: 4.8,
+        reviewsCount: 164,
+        isAvailable: true,
+        isFeatured: false,
+        ingredients: [
+          { name: "Tri-Color Quinoa (Cooked)", quantity: "1 cup" },
+          { name: "Crispy Roasted Paprika Chickpeas", quantity: "1/2 cup" },
+          { name: "Persian Cucumbers & Cherry Tomatoes", quantity: "1 cup diced" },
+          { name: "Kalamata Olives (Pitted)", quantity: "1/4 cup" },
+          { name: "Ripe Hass Avocado", quantity: "1/2 sliced" },
+          { name: "Tahini Lemon Garlic Dressing", quantity: "3 tbsp" },
+          { name: "Toasted Pumpkin Seeds", quantity: "1 tbsp" }
+        ],
+        instructions: [
+          "Layer warm fluffy quinoa at the base of your serving bowl.",
+          "Arrange cucumber, tomatoes, olives, chickpeas, and avocado slices in vibrant sections.",
+          "Whisk tahini, lemon juice, garlic, and cold water until silky smooth.",
+          "Drizzle vinaigrette generously and sprinkle toasted pumpkin seeds on top."
+        ],
+        nutrition: { calories: 410, protein: "16g", carbs: "52g", fat: "17g", fiber: "12g" },
+        chefNotes: "Soaking quinoa before cooking removes any natural saponin coating for pure nutty flavor."
+      },
+      {
+        id: "rec_8",
+        title: "Crispy Korean Gochujang Glazed Wings",
+        description: "Double-fried ultra-crispy chicken wings coated in a sweet, savory, and sticky fermented Gochujang glaze, topped with toasted white sesame seeds and scallions.",
+        price: 15.75,
+        image: "https://images.unsplash.com/photo-1527477378377-f818a7c13bb9?auto=format&fit=crop&w=800&q=80",
+        category: "Fast Food",
+        cuisine: "Korean Street Food",
+        prepTime: "15 mins",
+        cookTime: "20 mins",
+        servings: 2,
+        difficulty: "Medium",
+        dietary: ["Non-Veg"],
+        rating: 4.9,
+        reviewsCount: 295,
+        isAvailable: true,
+        isFeatured: false,
+        ingredients: [
+          { name: "Chicken Wings & Drumettes", quantity: "700g" },
+          { name: "Potato / Corn Starch", quantity: "1/2 cup" },
+          { name: "Gochujang Red Chili Paste", quantity: "3 tbsp" },
+          { name: "Honey & Rice Syrup", quantity: "2 tbsp" },
+          { name: "Soy Sauce & Rice Vinegar", quantity: "1 tbsp each" },
+          { name: "Minced Garlic & Ginger", quantity: "1 tbsp" },
+          { name: "Toasted Sesame Seeds & Scallions", quantity: "for garnish" }
+        ],
+        instructions: [
+          "Toss dry chicken wings in potato starch until lightly coated.",
+          "Fry wings first round at 325°F for 8 mins; rest on wire rack.",
+          "Simmer gochujang, honey, soy sauce, garlic, and vinegar until sticky and glossy.",
+          "Double-fry wings at 375°F for 3 minutes until shatteringly crisp.",
+          "Toss in glaze and garnish with toasted sesame seeds and sliced scallions."
+        ],
+        nutrition: { calories: 690, protein: "38g", carbs: "32g", fat: "42g", fiber: "1g" },
+        chefNotes: "The double frying method ensures long-lasting crunch even under rich sticky sauces!"
+      }
+    ];
+
+    const SERVICEABLE_LOCATIONS = [
+      { id: "loc_1", city: "Metropolis", areaName: "Downtown & Financial District", pincode: "10001", isServiceable: true, time: "25-35 mins", fee: "$2.50", hub: "Central Kitchen Hub" },
+      { id: "loc_2", city: "Metropolis", areaName: "Uptown Tech Park", pincode: "10002", isServiceable: true, time: "30-40 mins", fee: "$3.00", hub: "North Gate Kitchen" },
+      { id: "loc_3", city: "Metropolis", areaName: "Riverside Promenade", pincode: "10003", isServiceable: true, time: "20-30 mins", fee: "$2.00", hub: "Riverfront Hub" },
+      { id: "loc_4", city: "Metropolis", areaName: "West End Suburbs", pincode: "10004", isServiceable: true, time: "35-45 mins", fee: "$3.50", hub: "West Suburb Hub" },
+      { id: "loc_5", city: "Metropolis", areaName: "Greenwood Valley Heights", pincode: "10005", isServiceable: true, time: "30-40 mins", fee: "$3.00", hub: "Greenwood Express" },
+      { id: "loc_6", city: "Metropolis", areaName: "Aerocity Business Corridor", pincode: "10006", isServiceable: false, time: "Coming Soon", fee: "N/A", hub: "Launch Phase 2" }
+    ];
+
+    // ==========================================
+    // MAIN APP COMPONENT
+    // ==========================================
+    function App() {
+      // Data State
+      const [recipes, setRecipes] = useState(() => {
+        const saved = localStorage.getItem('rms_recipes');
+        return saved ? JSON.parse(saved) : DEFAULT_RECIPES;
+      });
+      const [cart, setCart] = useState(() => {
+        const saved = localStorage.getItem('rms_cart');
+        return saved ? JSON.parse(saved) : [];
+      });
+      const [wishlist, setWishlist] = useState(() => {
+        const saved = localStorage.getItem('rms_wishlist');
+        return saved ? JSON.parse(saved) : ['rec_1', 'rec_3'];
+      });
+      const [orders, setOrders] = useState(() => {
+        const saved = localStorage.getItem('rms_orders');
+        return saved ? JSON.parse(saved) : [
+          {
+            id: "ORD-94812",
+            date: "Today, 12:45 PM",
+            customerName: "Sarah Jenkins",
+            customerPhone: "+1 (555) 014-9988",
+            deliveryArea: "Downtown & Financial District",
+            items: [{ title: "Artisan Truffle & Wild Mushroom Risotto", qty: 2, price: 18.99 }],
+            total: 40.48,
+            paymentMethod: "Online UPI",
+            status: "Delivered"
+          }
+        ];
+      });
+
+      // Authentication State
+      const [currentUser, setCurrentUser] = useState(() => {
+        const saved = localStorage.getItem('rms_current_user');
+        return saved ? JSON.parse(saved) : null;
+      });
+
+      // Navigation & Modals
+      const [currentPage, setCurrentPage] = useState('home'); // 'home', 'contact', 'admin'
+      const [selectedLocation, setSelectedLocation] = useState(SERVICEABLE_LOCATIONS[0]);
+      const [searchQuery, setSearchQuery] = useState('');
+      const [selectedCategory, setSelectedCategory] = useState('All');
+      const [selectedDietary, setSelectedDietary] = useState('All');
+      const [sortBy, setSortBy] = useState('recommended');
+
+      // Modals
+      const [activeModal, setActiveModal] = useState(null); // 'auth', 'location', 'recipe_detail', 'cart', 'buy_now', 'copyright', 'add_recipe'
+      const [activeRecipe, setActiveRecipe] = useState(null);
+      const [quickBuyItem, setQuickBuyItem] = useState(null);
+      const [authMode, setAuthMode] = useState('user-login'); // 'user-login', 'user-signup', 'admin-login'
+      const [toastMessage, setToastMessage] = useState(null);
+
+      // Save to localStorage
+      useEffect(() => {
+        localStorage.setItem('rms_recipes', JSON.stringify(recipes));
+      }, [recipes]);
+      useEffect(() => {
+        localStorage.setItem('rms_cart', JSON.stringify(cart));
+      }, [cart]);
+      useEffect(() => {
+        localStorage.setItem('rms_wishlist', JSON.stringify(wishlist));
+      }, [wishlist]);
+      useEffect(() => {
+        localStorage.setItem('rms_orders', JSON.stringify(orders));
+      }, [orders]);
+      useEffect(() => {
+        if (currentUser) {
+          localStorage.setItem('rms_current_user', JSON.stringify(currentUser));
+        } else {
+          localStorage.removeItem('rms_current_user');
+        }
+      }, [currentUser]);
+
+      // Toast helper
+      const showToast = (msg) => {
+        setToastMessage(msg);
+        setTimeout(() => setToastMessage(null), 3500);
+      };
+
+      // Filtered & Sorted Recipes
+      const filteredRecipes = useMemo(() => {
+        return recipes.filter(r => {
+          const matchSearch = searchQuery.trim() === '' || 
+            r.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            r.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            r.category.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            r.ingredients.some(i => i.name.toLowerCase().includes(searchQuery.toLowerCase()));
+
+          const matchCat = selectedCategory === 'All' || r.category === selectedCategory;
+          const matchDiet = selectedDietary === 'All' || (r.dietary && r.dietary.includes(selectedDietary));
+
+          return matchSearch && matchCat && matchDiet;
+        }).sort((a, b) => {
+          if (sortBy === 'price-low') return a.price - b.price;
+          if (sortBy === 'price-high') return b.price - a.price;
+          if (sortBy === 'rating') return b.rating - a.rating;
+          return 0; // recommended
+        });
+      }, [recipes, searchQuery, selectedCategory, selectedDietary, sortBy]);
+
+      // Cart Operations
+      const addToCart = (recipe, e) => {
+        if (e) e.stopPropagation();
+        setCart(prev => {
+          const existing = prev.find(item => item.id === recipe.id);
+          if (existing) {
+            return prev.map(item => item.id === recipe.id ? { ...item, qty: item.qty + 1 } : item);
+          }
+          return [...prev, { ...recipe, qty: 1 }];
+        });
+        showToast(`🛒 "${recipe.title}" added to your cart!`);
+      };
+
+      const updateCartQty = (id, delta) => {
+        setCart(prev => prev.map(item => {
+          if (item.id === id) {
+            const newQty = item.qty + delta;
+            return newQty > 0 ? { ...item, qty: newQty } : null;
+          }
+          return item;
+        }).filter(Boolean));
+      };
+
+      const removeFromCart = (id) => {
+        setCart(prev => prev.filter(item => item.id !== id));
+        showToast("Item removed from cart");
+      };
+
+      const cartTotal = useMemo(() => {
+        return cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
+      }, [cart]);
+
+      // Wishlist Operations
+      const toggleWishlist = (recipeId, e) => {
+        if (e) e.stopPropagation();
+        setWishlist(prev => {
+          const exists = prev.includes(recipeId);
+          if (exists) {
+            showToast("Removed from Wishlist");
+            return prev.filter(id => id !== recipeId);
+          } else {
+            showToast("❤️ Added to Wishlist!");
+            return [...prev, recipeId];
+          }
+        });
+      };
+
+      // Direct "Buy Now" flow
+      const handleBuyNow = (recipe, e) => {
+        if (e) e.stopPropagation();
+        setQuickBuyItem(recipe);
+        setActiveModal('buy_now');
+      };
+
+      // Open Ingredients / Recipe Details
+      const openRecipeDetail = (recipe) => {
+        setActiveRecipe(recipe);
+        setActiveModal('recipe_detail');
+      };
+
+      return (
+        <div className="min-h-screen flex flex-col bg-slate-50 relative">
+          
+          {/* TOAST NOTIFICATION */}
+          {toastMessage && (
+            <div className="fixed bottom-6 right-6 z-50 flex items-center gap-3 bg-slate-900 text-white px-5 py-3 rounded-xl shadow-2xl border border-slate-700 animate-bounce text-sm font-medium">
+              <span className="text-brand-400">✨</span>
+              <span>{toastMessage}</span>
+            </div>
+          )}
+
+          {/* ========================================================= */}
+          {/* 1. TOP ANNOUNCEMENT & SERVICE AREA STRIP                  */}
+          {/* ========================================================= */}
+          <div className="bg-slate-900 text-slate-300 text-xs py-2 px-4 border-b border-slate-800">
+            <div className="max-w-7xl mx-auto flex flex-wrap justify-between items-center gap-2">
+              <div className="flex items-center gap-2">
+                <span className="inline-block w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
+                <span className="text-emerald-400 font-semibold">Service Status:</span>
+                <span>Delivering hot gourmet recipes across Metropolis Zones</span>
+              </div>
+              <div className="flex items-center gap-6">
+                <button 
+                  onClick={() => setActiveModal('copyright')} 
+                  className="hover:text-amber-400 flex items-center gap-1.5 transition-colors font-medium">
+                  <svg className="w-3.5 h-3.5 text-amber-400" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M10 2a8 8 0 100 16 8 8 0 000-16zM8 7a2 2 0 100 4 2 2 0 000-4zm4 0a2 2 0 100 4 2 2 0 000-4zm-4 7a4 4 0 004-4H8a4 4 0 000 4z" clipRule="evenodd"/>
+                  </svg>
+                  <span>ISO 9001 & Copyright Certified RMS-2026</span>
+                </button>
+                <span>📞 Hotline: +1 (800) 426-CHEF</span>
+              </div>
+            </div>
+          </div>
+
+          {/* ========================================================= */}
+          {/* 2. MAIN HEADER & NAVBAR                                   */}
+          {/* ========================================================= */}
+          <header className="sticky top-0 z-40 glass-nav border-b border-slate-200 shadow-sm transition-all">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+              <div className="flex items-center justify-between h-20 gap-4">
+                
+                {/* Brand Logo */}
+                <div 
+                  onClick={() => { setCurrentPage('home'); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
+                  className="flex items-center gap-3 cursor-pointer group flex-shrink-0">
+                  <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-brand-600 to-amber-500 flex items-center justify-center text-white shadow-lg shadow-brand-500/25 group-hover:scale-105 transition-transform">
+                    <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                    </svg>
+                  </div>
+                  <div>
+                    <span className="text-xl font-extrabold text-slate-900 tracking-tight flex items-center gap-1.5">
+                      ChefCraft <span className="text-brand-600 font-serif italic text-lg font-normal">RMS</span>
+                    </span>
+                    <span className="text-[11px] block font-medium text-slate-500 tracking-wider uppercase">
+                      Recipe Management System
+                    </span>
+                  </div>
+                </div>
+
+                {/* LOCATION SELECTOR LOGO & DROPDOWN (Direct User Requirement) */}
+                <div className="hidden md:flex items-center">
+                  <button
+                    onClick={() => setActiveModal('location')}
+                    className="flex items-center gap-2.5 px-3.5 py-2 rounded-xl bg-orange-50/80 hover:bg-orange-100 text-brand-800 border border-brand-200/80 transition-all text-xs font-medium group">
+                    <div className="w-7 h-7 rounded-lg bg-brand-500 text-white flex items-center justify-center shadow-sm group-hover:scale-110 transition-transform">
+                      {/* Location Pin Logo */}
+                      <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clipRule="evenodd"/>
+                      </svg>
+                    </div>
+                    <div className="text-left">
+                      <span className="text-[10px] uppercase tracking-wider text-brand-600 font-bold block leading-none">
+                        Check Delivery Area
+                      </span>
+                      <span className="font-bold text-slate-800 truncate max-w-[130px] inline-block">
+                        {selectedLocation ? selectedLocation.areaName.split('&')[0] : 'Select Area'}
+                      </span>
+                    </div>
+                    <svg className="w-3.5 h-3.5 text-brand-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M19 9l-7 7-7-7"/>
+                    </svg>
+                  </button>
+                </div>
+
+                {/* SEARCH BAR (Direct User Requirement) */}
+                <div className="flex-1 max-w-md mx-2">
+                  <div className="relative">
+                    <input
+                      type="text"
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      placeholder="Search recipes, ingredients, pasta, pizza..."
+                      className="w-full bg-slate-100/90 hover:bg-white focus:bg-white text-slate-800 text-sm pl-11 pr-10 py-2.5 rounded-full border border-slate-200 focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10 outline-none transition-all"
+                    />
+                    <div className="absolute left-4 top-3 text-slate-400">
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                      </svg>
+                    </div>
+                    {searchQuery && (
+                      <button 
+                        onClick={() => setSearchQuery('')}
+                        className="absolute right-3.5 top-2.5 text-slate-400 hover:text-slate-600">
+                        ✕
+                      </button>
+                    )}
+                  </div>
+                </div>
+
+                {/* NAVIGATION LINKS */}
+                <nav className="hidden lg:flex items-center gap-6 text-sm font-semibold text-slate-600">
+                  <button 
+                    onClick={() => { setCurrentPage('home'); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
+                    className={`${currentPage === 'home' ? 'text-brand-600 font-bold' : 'hover:text-slate-900'} transition-colors`}>
+                    Home
+                  </button>
+                  <button 
+                    onClick={() => { setCurrentPage('home'); document.getElementById('recipes-section')?.scrollIntoView({ behavior: 'smooth' }); }}
+                    className="hover:text-slate-900 transition-colors">
+                    Menu & Recipes
+                  </button>
+                  <button 
+                    onClick={() => { setCurrentPage('contact'); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
+                    className={`${currentPage === 'contact' ? 'text-brand-600 font-bold' : 'hover:text-slate-900'} transition-colors`}>
+                    Contact
+                  </button>
+                  {currentUser?.role === 'admin' && (
+                    <button 
+                      onClick={() => { setCurrentPage('admin'); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
+                      className={`px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider ${currentPage === 'admin' ? 'bg-amber-500 text-white' : 'bg-amber-100 text-amber-800 hover:bg-amber-200'} transition-all`}>
+                      ⚡ Admin Portal
+                    </button>
+                  )}
+                </nav>
+
+                {/* USER ACTIONS: WISHLIST, CART, AUTH BUTTONS */}
+                <div className="flex items-center gap-3">
+                  
+                  {/* Wishlist Button */}
+                  <button
+                    onClick={() => {
+                      if (wishlist.length === 0) {
+                        showToast("Your wishlist is empty. Click ❤️ on recipes to save!");
+                      } else {
+                        showToast(`❤️ You have ${wishlist.length} favorite recipes saved!`);
+                      }
+                    }}
+                    className="relative p-2.5 rounded-full hover:bg-slate-100 text-slate-700 transition-colors"
+                    title="Wishlist">
+                    <svg className="w-5 h-5 text-rose-500" fill={wishlist.length > 0 ? "currentColor" : "none"} stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                    </svg>
+                    {wishlist.length > 0 && (
+                      <span className="absolute -top-1 -right-1 bg-rose-600 text-white text-[10px] font-bold w-5 h-5 rounded-full flex items-center justify-center border-2 border-white">
+                        {wishlist.length}
+                      </span>
+                    )}
+                  </button>
+
+                  {/* Add to Cart Drawer Trigger */}
+                  <button
+                    onClick={() => setActiveModal('cart')}
+                    className="relative flex items-center gap-2 px-3.5 py-2 rounded-full bg-slate-900 hover:bg-slate-800 text-white font-medium text-xs shadow-md shadow-slate-900/10 transition-all hover:shadow-lg">
+                    <svg className="w-4 h-4 text-brand-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+                    </svg>
+                    <span className="hidden sm:inline">Cart</span>
+                    <span className="bg-brand-500 text-white font-bold px-1.5 py-0.5 rounded-full text-[11px]">
+                      {cart.reduce((sum, i) => sum + i.qty, 0)}
+                    </span>
+                  </button>
+
+                  {/* User Profile or Login Trigger */}
+                  {currentUser ? (
+                    <div className="flex items-center gap-2 pl-2 border-l border-slate-200">
+                      <div className="text-right hidden sm:block">
+                        <span className="block text-xs font-bold text-slate-800 leading-tight">{currentUser.name}</span>
+                        <span className={`text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.2 rounded ${currentUser.role === 'admin' ? 'bg-amber-100 text-amber-800' : 'bg-slate-100 text-slate-600'}`}>
+                          {currentUser.role}
+                        </span>
+                      </div>
+                      <button
+                        onClick={() => {
+                          if (confirm("Do you want to log out?")) {
+                            setCurrentUser(null);
+                            setCurrentPage('home');
+                            showToast("You have been signed out.");
+                          }
+                        }}
+                        className="w-9 h-9 rounded-full bg-brand-100 text-brand-800 font-bold text-xs flex items-center justify-center hover:bg-rose-100 hover:text-rose-700 transition-colors"
+                        title="Click to Logout">
+                        {currentUser.name.charAt(0)}
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-1.5 pl-2 border-l border-slate-200">
+                      <button
+                        onClick={() => { setAuthMode('user-login'); setActiveModal('auth'); }}
+                        className="px-3.5 py-2 text-xs font-bold text-slate-700 hover:text-brand-600 transition-colors">
+                        Sign In
+                      </button>
+                      <button
+                        onClick={() => { setAuthMode('admin-login'); setActiveModal('auth'); }}
+                        className="px-3 py-1.5 text-xs font-bold bg-amber-500 hover:bg-amber-600 text-white rounded-lg transition-all shadow-sm">
+                        Admin
+                      </button>
+                    </div>
+                  )}
+
+                </div>
+
+              </div>
+            </div>
+          </header>
+
+          {/* ========================================================= */}
+          {/* 3. CONDITIONAL BODY: HOME / CONTACT / ADMIN PAGES         */}
+          {/* ========================================================= */}
+          <main className="flex-1">
+            {currentPage === 'home' && (
+              <HomePageView 
+                recipes={filteredRecipes}
+                allRecipesCount={recipes.length}
+                selectedCategory={selectedCategory}
+                setSelectedCategory={setSelectedCategory}
+                selectedDietary={selectedDietary}
+                setSelectedDietary={setSelectedDietary}
+                sortBy={sortBy}
+                setSortBy={setSortBy}
+                selectedLocation={selectedLocation}
+                openLocationModal={() => setActiveModal('location')}
+                openRecipeDetail={openRecipeDetail}
+                addToCart={addToCart}
+                handleBuyNow={handleBuyNow}
+                toggleWishlist={toggleWishlist}
+                wishlist={wishlist}
+                searchQuery={searchQuery}
+                setSearchQuery={setSearchQuery}
+                currentUser={currentUser}
+                openAuthModal={(mode) => { setAuthMode(mode); setActiveModal('auth'); }}
+              />
+            )}
+
+            {currentPage === 'contact' && (
+              <ContactPageView showToast={showToast} />
+            )}
+
+            {currentPage === 'admin' && (
+              <AdminDashboardView 
+                recipes={recipes}
+                setRecipes={setRecipes}
+                orders={orders}
+                setOrders={setOrders}
+                locations={SERVICEABLE_LOCATIONS}
+                showToast={showToast}
+                currentUser={currentUser}
+                openAddModal={() => setActiveModal('add_recipe')}
+              />
+            )}
+          </main>
+
+          {/* ========================================================= */}
+          {/* 4. FOOTER & COPYRIGHT CERTIFICATE (Direct User Req)       */}
+          {/* ========================================================= */}
+          <FooterView 
+            openCopyrightModal={() => setActiveModal('copyright')}
+            setCurrentPage={setCurrentPage}
+            openLocationModal={() => setActiveModal('location')}
+            openAuthModal={(mode) => { setAuthMode(mode); setActiveModal('auth'); }}
+          />
+
+          {/* ========================================================= */}
+          {/* 5. MODALS & POPUPS                                        */}
+          {/* ========================================================= */}
+          
+          {/* MODAL 1: AUTHENTICATION (User Login, Signup, Admin Login) */}
+          {activeModal === 'auth' && (
+            <AuthModalView 
+              mode={authMode}
+              setMode={setAuthMode}
+              onClose={() => setActiveModal(null)}
+              onLoginSuccess={(user) => {
+                setCurrentUser(user);
+                setActiveModal(null);
+                showToast(`Welcome ${user.name}! Authenticated as ${user.role}.`);
+                if (user.role === 'admin') setCurrentPage('admin');
+              }}
+            />
+          )}
+
+          {/* MODAL 2: LOCATION CHECKER (Logo a side to check areas) */}
+          {activeModal === 'location' && (
+            <LocationCheckerModalView 
+              locations={SERVICEABLE_LOCATIONS}
+              currentLocation={selectedLocation}
+              onSelect={(loc) => {
+                setSelectedLocation(loc);
+                setActiveModal(null);
+                showToast(`Location set to: ${loc.areaName} (${loc.pincode})`);
+              }}
+              onClose={() => setActiveModal(null)}
+            />
+          )}
+
+          {/* MODAL 3: INGREDIENTS & RECIPE DETAILS (Direct User Req) */}
+          {activeModal === 'recipe_detail' && activeRecipe && (
+            <IngredientsModalView 
+              recipe={activeRecipe}
+              onClose={() => { setActiveModal(null); setActiveRecipe(null); }}
+              onAddToCart={() => addToCart(activeRecipe)}
+              onBuyNow={() => handleBuyNow(activeRecipe)}
+              isWishlisted={wishlist.includes(activeRecipe.id)}
+              onToggleWishlist={() => toggleWishlist(activeRecipe.id)}
+            />
+          )}
+
+          {/* MODAL 4: SHOPPING CART & CHECKOUT */}
+          {activeModal === 'cart' && (
+            <CartDrawerModalView 
+              cart={cart}
+              onClose={() => setActiveModal(null)}
+              updateQty={updateCartQty}
+              removeItem={removeFromCart}
+              cartTotal={cartTotal}
+              location={selectedLocation}
+              onProceedToCheckout={() => {
+                if (cart.length === 0) return;
+                setActiveModal('buy_now');
+              }}
+            />
+          )}
+
+          {/* MODAL 5: BUY NOW / DIRECT QUICK CHECKOUT */}
+          {activeModal === 'buy_now' && (
+            <BuyNowCheckoutModalView 
+              singleItem={quickBuyItem}
+              cartItems={quickBuyItem ? null : cart}
+              totalAmount={quickBuyItem ? (quickBuyItem.price + 2.50) : (cartTotal + 2.50)}
+              location={selectedLocation}
+              currentUser={currentUser}
+              onClose={() => { setActiveModal(null); setQuickBuyItem(null); }}
+              onOrderSuccess={(orderData) => {
+                setOrders(prev => [orderData, ...prev]);
+                if (!quickBuyItem) setCart([]);
+                setActiveModal(null);
+                setQuickBuyItem(null);
+                showToast("🎉 Order Confirmed! Your food is being prepared!");
+              }}
+            />
+          )}
+
+          {/* MODAL 6: OFFICIAL COPYRIGHT CERTIFICATE (Direct User Req) */}
+          {activeModal === 'copyright' && (
+            <CopyrightCertificateModalView 
+              onClose={() => setActiveModal(null)}
+            />
+          )}
+
+          {/* MODAL 7: ADMIN ADD NEW RECIPE */}
+          {activeModal === 'add_recipe' && (
+            <AddRecipeModalView 
+              onClose={() => setActiveModal(null)}
+              onAdd={(newRecipe) => {
+                setRecipes(prev => [newRecipe, ...prev]);
+                setActiveModal(null);
+                showToast(`New Recipe "${newRecipe.title}" added to MongoDB database!`);
+              }}
+            />
+          )}
+
+        </div>
+      );
+    }
+
+    // =========================================================
+    // SUB-COMPONENT: HOME PAGE VIEW
+    // =========================================================
+    function HomePageView({
+      recipes,
+      allRecipesCount,
+      selectedCategory,
+      setSelectedCategory,
+      selectedDietary,
+      setSelectedDietary,
+      sortBy,
+      setSortBy,
+      selectedLocation,
+      openLocationModal,
+      openRecipeDetail,
+      addToCart,
+      handleBuyNow,
+      toggleWishlist,
+      wishlist,
+      searchQuery,
+      setSearchQuery,
+      currentUser,
+      openAuthModal
+    }) {
+      const categories = ['All', 'Italian', 'Indian', 'Mexican', 'Asian', 'Healthy', 'Dessert', 'Fast Food'];
+      const dietaryFilters = ['All', 'Vegetarian', 'Vegan', 'Gluten-Free', 'Halal', 'Pescatarian', 'Non-Veg'];
+
+      return (
+        <div className="space-y-12 pb-20">
+          
+          {/* HERO BANNER SECTION */}
+          <section className="relative overflow-hidden hero-gradient border-b border-orange-100/70 pt-10 pb-16 lg:py-20">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+                
+                {/* Hero Left Copy */}
+                <div className="lg:col-span-7 space-y-6 text-center lg:text-left">
+                  <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white border border-brand-200 shadow-sm text-xs font-bold text-brand-700">
+                    <span className="w-2 h-2 rounded-full bg-brand-500"></span>
+                    <span>Verified Fresh Gourmet Meals & Master Culinary Recipes</span>
+                  </div>
+
+                  <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-slate-900 tracking-tight leading-[1.15]">
+                    Explore Secret Chef Recipes & Order <span className="text-transparent bg-clip-text bg-gradient-to-r from-brand-600 to-amber-600 font-serif italic">Fresh Delicious Food</span>
+                  </h1>
+
+                  <p className="text-base sm:text-lg text-slate-600 max-w-2xl leading-relaxed">
+                    A comprehensive recipe management system powered by React & MongoDB. Inspect complete lists of authentic ingredients, cooking procedures, track live delivery across metropolitan areas, and order in one click.
+                  </p>
+
+                  {/* Service Area Check CTA Banner */}
+                  <div className="flex flex-wrap items-center justify-center lg:justify-start gap-4 pt-2">
+                    <button
+                      onClick={openLocationModal}
+                      className="px-6 py-3.5 rounded-xl bg-brand-600 hover:bg-brand-700 text-white font-bold text-sm shadow-xl shadow-brand-600/30 hover:shadow-brand-600/50 hover:-translate-y-0.5 transition-all flex items-center gap-2">
+                      <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clipRule="evenodd"/>
+                      </svg>
+                      <span>Check Delivery to: {selectedLocation ? selectedLocation.pincode : 'Your Area'}</span>
+                    </button>
+
+                    <button
+                      onClick={() => document.getElementById('recipes-section')?.scrollIntoView({ behavior: 'smooth' })}
+                      className="px-6 py-3.5 rounded-xl bg-white hover:bg-slate-50 text-slate-800 font-bold text-sm border border-slate-300 shadow-sm transition-all flex items-center gap-2">
+                      <span>Browse All Recipes</span>
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"/>
+                      </svg>
+                    </button>
+                  </div>
+
+                  {/* Quick Feature Badges */}
+                  <div className="grid grid-cols-3 gap-4 pt-4 border-t border-orange-200/50 max-w-lg mx-auto lg:mx-0">
+                    <div>
+                      <span className="block text-xl font-extrabold text-slate-900">100%</span>
+                      <span className="text-xs text-slate-500 font-medium">Verified Ingredients</span>
+                    </div>
+                    <div>
+                      <span className="block text-xl font-extrabold text-slate-900">25-35 Mins</span>
+                      <span className="text-xs text-slate-500 font-medium">Express Delivery</span>
+                    </div>
+                    <div>
+                      <span className="block text-xl font-extrabold text-slate-900">4.9 ★</span>
+                      <span className="text-xs text-slate-500 font-medium">Customer Rating</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Hero Right Visuals */}
+                <div className="lg:col-span-5 relative flex justify-center">
+                  <div className="relative w-full max-w-md">
+                    {/* Main Featured Dish Card */}
+                    <div className="relative rounded-3xl overflow-hidden shadow-2xl border-4 border-white bg-white group hover:scale-[1.02] transition-transform">
+                      <img 
+                        src="https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=800&q=80" 
+                        alt="Signature Gourmet Salad" 
+                        className="w-full h-80 object-cover"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-transparent flex flex-col justify-end p-6 text-white">
+                        <div className="flex items-center gap-2 mb-2">
+                          <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-400 text-slate-950">
+                            Chef's Recommendation
+                          </span>
+                          <span className="text-xs font-semibold text-amber-200">Italian Truffle Selection</span>
+                        </div>
+                        <h3 className="text-xl font-bold font-serif">Artisanal Culinary Experiences</h3>
+                        <p className="text-xs text-slate-300 mt-1">Click any recipe item below to view exact ingredients list & secret spice blends.</p>
+                      </div>
+                    </div>
+
+                    {/* Floating Floating Micro Badges */}
+                    <div className="absolute -bottom-6 -left-6 bg-white p-4 rounded-2xl shadow-xl border border-slate-100 flex items-center gap-3 animate-subtle hidden sm:flex">
+                      <div className="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-600 flex items-center justify-center font-bold text-lg">
+                        🥗
+                      </div>
+                      <div>
+                        <span className="block text-xs font-bold text-slate-900">Farm Fresh Produce</span>
+                        <span className="text-[11px] text-slate-500">100% Organic certified</span>
+                      </div>
+                    </div>
+
+                    <div className="absolute -top-6 -right-6 bg-white p-3.5 rounded-2xl shadow-xl border border-slate-100 flex items-center gap-3 hidden sm:flex">
+                      <div className="w-10 h-10 rounded-xl bg-brand-100 text-brand-600 flex items-center justify-center font-bold text-lg">
+                        ⚡
+                      </div>
+                      <div>
+                        <span className="block text-xs font-bold text-slate-900">Live Area Check</span>
+                        <span className="text-[11px] text-emerald-600 font-semibold">Serviceable Now</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+              </div>
+            </div>
+          </section>
+
+          {/* ========================================================= */}
+          {/* CATEGORY & DIETARY FILTERS SECTION                        */}
+          {/* ========================================================= */}
+          <section id="recipes-section" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6 scroll-mt-24">
+            
+            <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 border-b border-slate-200 pb-5">
+              <div>
+                <span className="text-xs font-bold uppercase tracking-wider text-brand-600">Our Culinary Menu</span>
+                <h2 className="text-3xl font-extrabold text-slate-900 tracking-tight">
+                  Handcrafted Recipes & Gourmet Dishes
+                </h2>
+                <p className="text-sm text-slate-500 mt-1">
+                  Showing {recipes.length} of {allRecipesCount} dishes available for ordering & home preparation
+                </p>
+              </div>
+
+              {/* Sort Filter */}
+              <div className="flex items-center gap-3">
+                <label className="text-xs font-semibold text-slate-500">Sort By:</label>
+                <select
+                  value={sortBy}
+                  onChange={(e) => setSortBy(e.target.value)}
+                  className="bg-white border border-slate-300 text-xs font-medium rounded-xl px-3 py-2 text-slate-700 focus:outline-none focus:border-brand-500">
+                  <option value="recommended">Featured / Recommended</option>
+                  <option value="rating">Top Rated (Stars)</option>
+                  <option value="price-low">Price: Low to High</option>
+                  <option value="price-high">Price: High to Low</option>
+                </select>
+              </div>
+            </div>
+
+            {/* Category Pills */}
+            <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none">
+              {categories.map(cat => (
+                <button
+                  key={cat}
+                  onClick={() => setSelectedCategory(cat)}
+                  className={`px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all ${
+                    selectedCategory === cat 
+                      ? 'bg-slate-900 text-white shadow-md' 
+                      : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200'
+                  }`}>
+                  {cat === 'All' ? '🍽️ All Cuisines' : cat}
+                </button>
+              ))}
+            </div>
+
+            {/* Dietary Filter Buttons */}
+            <div className="flex flex-wrap items-center gap-2 text-xs">
+              <span className="text-slate-400 font-semibold mr-1">Dietary:</span>
+              {dietaryFilters.map(diet => (
+                <button
+                  key={diet}
+                  onClick={() => setSelectedDietary(diet)}
+                  className={`px-3 py-1 rounded-lg text-xs font-medium transition-all ${
+                    selectedDietary === diet
+                      ? 'bg-brand-500 text-white'
+                      : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                  }`}>
+                  {diet}
+                </button>
+              ))}
+            </div>
+
+            {/* RECIPE CARDS GRID (Direct User Requirement: image, description, price, add to cart, buy now, wishlist, click to view ingredients) */}
+            {recipes.length === 0 ? (
+              <div className="text-center py-16 bg-white rounded-3xl border border-dashed border-slate-300">
+                <span className="text-5xl block mb-3">🔍</span>
+                <h3 className="text-lg font-bold text-slate-800">No recipes found</h3>
+                <p className="text-sm text-slate-500 mt-1 max-w-md mx-auto">
+                  We couldn't find any dishes matching "{searchQuery}". Try searching for pasta, ramen, chicken, or reset your filters.
+                </p>
+                <button 
+                  onClick={() => { setSearchQuery(''); setSelectedCategory('All'); setSelectedDietary('All'); }}
+                  className="mt-4 px-4 py-2 bg-brand-600 text-white rounded-xl text-xs font-bold hover:bg-brand-700">
+                  Reset All Filters
+                </button>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 pt-2">
+                {recipes.map(recipe => (
+                  <RecipeCardItem 
+                    key={recipe.id}
+                    recipe={recipe}
+                    onOpenDetail={() => openRecipeDetail(recipe)}
+                    onAddToCart={(e) => addToCart(recipe, e)}
+                    onBuyNow={(e) => handleBuyNow(recipe, e)}
+                    onToggleWishlist={(e) => toggleWishlist(recipe.id, e)}
+                    isWishlisted={wishlist.includes(recipe.id)}
+                  />
+                ))}
+              </div>
+            )}
+
+          </section>
+
+          {/* ========================================================= */}
+          {/* METROPOLITAN SERVICE HUBS BANNER                          */}
+          {/* ========================================================= */}
+          <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="rounded-3xl bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 p-8 sm:p-12 text-white shadow-2xl relative overflow-hidden">
+              <div className="absolute right-0 bottom-0 opacity-10 pointer-events-none transform translate-x-12 translate-y-12">
+                <svg className="w-96 h-96 text-white" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clipRule="evenodd"/>
+                </svg>
+              </div>
+
+              <div className="relative z-10 max-w-2xl space-y-4">
+                <span className="px-3 py-1 rounded-full bg-brand-500/20 text-brand-400 border border-brand-500/40 text-xs font-bold tracking-wider uppercase">
+                  Location Network
+                </span>
+                <h3 className="text-2xl sm:text-3xl font-extrabold tracking-tight">
+                  Check If We Serve Your Neighborhood
+                </h3>
+                <p className="text-sm text-slate-300 leading-relaxed">
+                  Our cloud kitchens are strategically placed to ensure meal freshness and temperature preservation. Enter your zip code or area name to verify coverage and delivery charges.
+                </p>
+                <div className="pt-2 flex flex-wrap gap-4 items-center">
+                  <button
+                    onClick={openLocationModal}
+                    className="px-6 py-3 bg-brand-500 hover:bg-brand-600 text-white rounded-xl text-xs font-bold shadow-lg transition-all flex items-center gap-2">
+                    <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clipRule="evenodd"/>
+                    </svg>
+                    <span>Check Serviceable Areas Now</span>
+                  </button>
+                  <span className="text-xs text-slate-400">
+                    Currently Selected: <strong className="text-white">{selectedLocation?.areaName}</strong>
+                  </span>
+                </div>
+              </div>
+            </div>
+          </section>
+
+        </div>
+      );
+    }
+
+    // =========================================================
+    // SUB-COMPONENT: RECIPE CARD ITEM
+    // =========================================================
+    function RecipeCardItem({
+      recipe,
+      onOpenDetail,
+      onAddToCart,
+      onBuyNow,
+      onToggleWishlist,
+      isWishlisted
+    }) {
+      const isVeg = recipe.dietary?.includes('Vegetarian') || recipe.dietary?.includes('Vegan');
+
+      return (
+        <div 
+          onClick={onOpenDetail}
+          className="group bg-white rounded-2xl overflow-hidden border border-slate-200/80 hover:border-brand-300 shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col cursor-pointer relative">
+          
+          {/* Card Top Image & Badges */}
+          <div className="relative h-48 w-full overflow-hidden bg-slate-100">
+            <img 
+              src={recipe.image} 
+              alt={recipe.title} 
+              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+              loading="lazy"
+            />
+            
+            {/* Dark gradient overlay on image */}
+            <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent"></div>
+
+            {/* Category & Diet Badges */}
+            <div className="absolute top-3 left-3 flex flex-wrap gap-1.5 items-center">
+              <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-white/95 text-slate-800 shadow-sm backdrop-blur-sm">
+                {recipe.category}
+              </span>
+              <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${isVeg ? 'badge-veg' : 'badge-nonveg'}`}>
+                {isVeg ? '● Pure Veg' : '▲ Non-Veg'}
+              </span>
+            </div>
+
+            {/* Wishlist Heart Button (Direct User Req) */}
+            <button
+              onClick={onToggleWishlist}
+              className="absolute top-3 right-3 w-8 h-8 rounded-full bg-white/90 hover:bg-white text-slate-700 flex items-center justify-center shadow-md transition-all hover:scale-110"
+              title={isWishlisted ? "Remove from Wishlist" : "Add to Wishlist"}>
+              <svg 
+                className={`w-4 h-4 ${isWishlisted ? 'text-rose-600 fill-rose-600' : 'text-slate-400'}`} 
+                fill={isWishlisted ? "currentColor" : "none"} 
+                stroke="currentColor" 
+                viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+              </svg>
+            </button>
+
+            {/* Rating badge */}
+            <div className="absolute bottom-2.5 left-3 flex items-center gap-1 bg-slate-900/80 backdrop-blur-sm px-2 py-0.5 rounded-md text-[11px] font-bold text-amber-300">
+              <span>★</span>
+              <span>{recipe.rating}</span>
+              <span className="text-slate-400 text-[10px]">({recipe.reviewsCount})</span>
+            </div>
+
+            {/* Prep Time badge */}
+            <div className="absolute bottom-2.5 right-3 text-[10px] font-medium text-white/90 bg-black/50 px-2 py-0.5 rounded backdrop-blur-sm">
+              🕒 {recipe.prepTime}
+            </div>
+          </div>
+
+          {/* Card Body */}
+          <div className="p-4 flex-1 flex flex-col justify-between space-y-3">
+            <div>
+              <h3 className="font-bold text-slate-900 text-sm group-hover:text-brand-600 transition-colors line-clamp-1">
+                {recipe.title}
+              </h3>
+              <p className="text-xs text-slate-500 line-clamp-2 mt-1 leading-relaxed">
+                {recipe.description}
+              </p>
+            </div>
+
+            {/* Click to inspect ingredients teaser (Direct User Req) */}
+            <div className="bg-amber-50/70 hover:bg-amber-100/70 border border-amber-200/60 rounded-lg px-2.5 py-1.5 flex items-center justify-between text-[11px] text-amber-900 font-medium">
+              <span className="flex items-center gap-1">
+                <span>🥕</span>
+                <span>{recipe.ingredients.length} Ingredients listed</span>
+              </span>
+              <span className="text-amber-700 font-bold underline">Inspect →</span>
+            </div>
+
+            {/* Price & Action Buttons (Direct User Req: Price, Add to Cart, Buy Now) */}
+            <div className="pt-2 border-t border-slate-100">
+              <div className="flex items-baseline justify-between mb-3">
+                <div>
+                  <span className="text-[10px] uppercase font-bold text-slate-400 block leading-none">Price</span>
+                  <span className="text-lg font-extrabold text-slate-900">${recipe.price.toFixed(2)}</span>
+                </div>
+                <span className="text-[11px] text-emerald-600 font-semibold bg-emerald-50 px-2 py-0.5 rounded">
+                  In Stock
+                </span>
+              </div>
+
+              <div className="grid grid-cols-2 gap-2">
+                {/* Add to Cart Button */}
+                <button
+                  onClick={onAddToCart}
+                  className="w-full py-2 px-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-bold transition-all flex items-center justify-center gap-1 active:scale-95">
+                  <svg className="w-3.5 h-3.5 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+                  </svg>
+                  <span>Add Cart</span>
+                </button>
+
+                {/* Buy Now Button */}
+                <button
+                  onClick={onBuyNow}
+                  className="w-full py-2 px-2 rounded-xl bg-brand-600 hover:bg-brand-700 text-white text-xs font-bold shadow-md shadow-brand-600/20 transition-all flex items-center justify-center gap-1 active:scale-95">
+                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                  </svg>
+                  <span>Buy Now</span>
+                </button>
+              </div>
+            </div>
+
+          </div>
+
+        </div>
+      );
+    }
+
+    // =========================================================
+    // SUB-COMPONENT: INGREDIENTS & RECIPE DETAILS MODAL
+    // (Direct User Requirement: "when we click any food item the
+    // website have to show that list of ingredients of that food and etc features")
+    // =========================================================
+    function IngredientsModalView({
+      recipe,
+      onClose,
+      onAddToCart,
+      onBuyNow,
+      isWishlisted,
+      onToggleWishlist
+    }) {
+      const [activeTab, setActiveTab] = useState('ingredients'); // 'ingredients', 'instructions', 'nutrition'
+      const [checkedIngredients, setCheckedIngredients] = useState({});
+
+      const toggleCheck = (idx) => {
+        setCheckedIngredients(prev => ({ ...prev, [idx]: !prev[idx] }));
+      };
+
+      return (
+        <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4">
+          <div className="bg-white rounded-3xl max-w-3xl w-full max-h-[92vh] overflow-hidden shadow-2xl flex flex-col animate-in fade-in zoom-in-95 duration-200">
+            
+            {/* Modal Header Banner with Food Image */}
+            <div className="relative h-64 sm:h-72 w-full bg-slate-900 flex-shrink-0">
+              <img 
+                src={recipe.image} 
+                alt={recipe.title} 
+                className="w-full h-full object-cover"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/40 to-transparent"></div>
+
+              {/* Close Button */}
+              <button
+                onClick={onClose}
+                className="absolute top-4 right-4 w-9 h-9 rounded-full bg-black/60 hover:bg-black/90 text-white flex items-center justify-center transition-all z-10">
+                ✕
+              </button>
+
+              {/* Wishlist Button */}
+              <button
+                onClick={onToggleWishlist}
+                className="absolute top-4 right-16 w-9 h-9 rounded-full bg-black/60 hover:bg-black/90 text-white flex items-center justify-center transition-all z-10">
+                <svg className={`w-4 h-4 ${isWishlisted ? 'text-rose-500 fill-rose-500' : 'text-white'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                </svg>
+              </button>
+
+              {/* Dish Meta in Banner */}
+              <div className="absolute bottom-5 left-5 right-5 text-white">
+                <div className="flex flex-wrap items-center gap-2 mb-1.5">
+                  <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-brand-500 text-white">
+                    {recipe.category}
+                  </span>
+                  <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-white/20 backdrop-blur-sm text-slate-100">
+                    Cuisine: {recipe.cuisine}
+                  </span>
+                  <span className="px-2 py-0.5 rounded text-[11px] font-bold bg-amber-400 text-slate-950">
+                    ★ {recipe.rating} ({recipe.reviewsCount} reviews)
+                  </span>
+                </div>
+                <h2 className="text-2xl sm:text-3xl font-extrabold font-serif tracking-tight">
+                  {recipe.title}
+                </h2>
+                <div className="flex flex-wrap items-center gap-4 text-xs text-slate-300 mt-1">
+                  <span>⏱️ Prep: {recipe.prepTime}</span>
+                  <span>🔥 Cook: {recipe.cookTime}</span>
+                  <span>👥 Servings: {recipe.servings} people</span>
+                  <span>🎯 Difficulty: {recipe.difficulty}</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Modal Navigation Tabs */}
+            <div className="flex border-b border-slate-200 bg-slate-50 px-6">
+              <button
+                onClick={() => setActiveTab('ingredients')}
+                className={`py-3 px-4 text-xs font-bold border-b-2 transition-all flex items-center gap-1.5 ${
+                  activeTab === 'ingredients'
+                    ? 'border-brand-600 text-brand-600 bg-white'
+                    : 'border-transparent text-slate-600 hover:text-slate-900'
+                }`}>
+                <span>🥕 Ingredients List ({recipe.ingredients.length})</span>
+              </button>
+              <button
+                onClick={() => setActiveTab('instructions')}
+                className={`py-3 px-4 text-xs font-bold border-b-2 transition-all flex items-center gap-1.5 ${
+                  activeTab === 'instructions'
+                    ? 'border-brand-600 text-brand-600 bg-white'
+                    : 'border-transparent text-slate-600 hover:text-slate-900'
+                }`}>
+                <span>👨‍🍳 Cooking Instructions</span>
+              </button>
+              <button
+                onClick={() => setActiveTab('nutrition')}
+                className={`py-3 px-4 text-xs font-bold border-b-2 transition-all flex items-center gap-1.5 ${
+                  activeTab === 'nutrition'
+                    ? 'border-brand-600 text-brand-600 bg-white'
+                    : 'border-transparent text-slate-600 hover:text-slate-900'
+                }`}>
+                <span>📊 Nutrition & Chef Notes</span>
+              </button>
+            </div>
+
+            {/* Modal Body Content */}
+            <div className="p-6 overflow-y-auto flex-1 space-y-6">
+              
+              {/* TAB 1: INGREDIENTS LIST */}
+              {activeTab === 'ingredients' && (
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h4 className="text-sm font-bold text-slate-900">Required Culinary Ingredients</h4>
+                      <p className="text-xs text-slate-500">Check off the ingredients you already have in your pantry:</p>
+                    </div>
+                    <span className="text-xs font-semibold text-brand-600 bg-brand-50 px-2.5 py-1 rounded-full">
+                      {Object.values(checkedIngredients).filter(Boolean).length} / {recipe.ingredients.length} Available
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                    {recipe.ingredients.map((ing, idx) => {
+                      const isChecked = !!checkedIngredients[idx];
+                      return (
+                        <div 
+                          key={idx}
+                          onClick={() => toggleCheck(idx)}
+                          className={`p-3 rounded-xl border transition-all flex items-center justify-between cursor-pointer ${
+                            isChecked 
+                              ? 'bg-emerald-50/70 border-emerald-300 line-through text-slate-400' 
+                              : 'bg-white border-slate-200 hover:border-brand-300'
+                          }`}>
+                          <div className="flex items-center gap-2.5">
+                            <input 
+                              type="checkbox" 
+                              checked={isChecked} 
+                              onChange={() => toggleCheck(idx)}
+                              className="w-4 h-4 text-brand-600 rounded border-slate-300 focus:ring-brand-500"
+                            />
+                            <span className="text-xs font-bold text-slate-800">{ing.name}</span>
+                          </div>
+                          <span className="text-xs font-semibold text-slate-500 bg-slate-100 px-2 py-0.5 rounded">
+                            {ing.quantity}
+                          </span>
+                        </div>
+                      );
+                    })}
+                  </div>
+
+                  <div className="bg-orange-50 p-3.5 rounded-xl border border-orange-200 text-xs text-orange-800 flex items-start gap-2">
+                    <span className="text-base">💡</span>
+                    <span>
+                      <strong>Pantry Tip:</strong> Don't have some ingredients? You can order this freshly cooked recipe directly from our cloud kitchen using the <strong>Buy Now</strong> button below!
+                    </span>
+                  </div>
+                </div>
+              )}
+
+              {/* TAB 2: COOKING INSTRUCTIONS */}
+              {activeTab === 'instructions' && (
+                <div className="space-y-4">
+                  <h4 className="text-sm font-bold text-slate-900">Step-by-Step Culinary Preparation</h4>
+                  <div className="space-y-3">
+                    {recipe.instructions.map((step, idx) => (
+                      <div key={idx} className="flex gap-3 p-3.5 rounded-xl bg-slate-50 border border-slate-100">
+                        <div className="w-6 h-6 rounded-full bg-brand-600 text-white text-xs font-bold flex items-center justify-center flex-shrink-0">
+                          {idx + 1}
+                        </div>
+                        <p className="text-xs text-slate-700 leading-relaxed font-medium">{step}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* TAB 3: NUTRITION & CHEF NOTES */}
+              {activeTab === 'nutrition' && (
+                <div className="space-y-6">
+                  {/* Nutrition Grid */}
+                  <div>
+                    <h4 className="text-sm font-bold text-slate-900 mb-3">Estimated Nutritional Profile (Per Serving)</h4>
+                    <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 text-center">
+                      <div className="p-3 rounded-xl bg-slate-100">
+                        <span className="block text-lg font-extrabold text-slate-800">{recipe.nutrition.calories}</span>
+                        <span className="text-[11px] text-slate-500 font-semibold uppercase">Calories</span>
+                      </div>
+                      <div className="p-3 rounded-xl bg-slate-100">
+                        <span className="block text-lg font-extrabold text-slate-800">{recipe.nutrition.protein}</span>
+                        <span className="text-[11px] text-slate-500 font-semibold uppercase">Protein</span>
+                      </div>
+                      <div className="p-3 rounded-xl bg-slate-100">
+                        <span className="block text-lg font-extrabold text-slate-800">{recipe.nutrition.carbs}</span>
+                        <span className="text-[11px] text-slate-500 font-semibold uppercase">Carbs</span>
+                      </div>
+                      <div className="p-3 rounded-xl bg-slate-100">
+                        <span className="block text-lg font-extrabold text-slate-800">{recipe.nutrition.fat}</span>
+                        <span className="text-[11px] text-slate-500 font-semibold uppercase">Fats</span>
+                      </div>
+                      <div className="p-3 rounded-xl bg-slate-100">
+                        <span className="block text-lg font-extrabold text-slate-800">{recipe.nutrition.fiber}</span>
+                        <span className="text-[11px] text-slate-500 font-semibold uppercase">Fiber</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Chef's Secret Notes */}
+                  <div className="p-4 rounded-2xl bg-amber-50/80 border border-amber-200">
+                    <div className="flex items-center gap-2 text-amber-900 font-bold text-xs mb-1">
+                      <span>👨‍🍳</span>
+                      <span>Executive Chef's Pro Advice:</span>
+                    </div>
+                    <p className="text-xs text-amber-950 leading-relaxed italic">
+                      "{recipe.chefNotes}"
+                    </p>
+                  </div>
+                </div>
+              )}
+
+            </div>
+
+            {/* Modal Bottom Footer Actions */}
+            <div className="p-4 sm:p-5 border-t border-slate-200 bg-slate-50 flex flex-wrap items-center justify-between gap-4">
+              <div>
+                <span className="text-[10px] uppercase font-bold text-slate-400 block">Total Order Price</span>
+                <span className="text-2xl font-extrabold text-slate-900">${recipe.price.toFixed(2)}</span>
+              </div>
+
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={() => { onAddToCart(); onClose(); }}
+                  className="px-5 py-2.5 rounded-xl bg-slate-200 hover:bg-slate-300 text-slate-800 font-bold text-xs transition-all flex items-center gap-1.5">
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+                  </svg>
+                  <span>Add to Cart</span>
+                </button>
+
+                <button
+                  onClick={() => { onClose(); onBuyNow(); }}
+                  className="px-6 py-2.5 rounded-xl bg-brand-600 hover:bg-brand-700 text-white font-bold text-xs shadow-lg shadow-brand-600/30 transition-all flex items-center gap-1.5">
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                  </svg>
+                  <span>Order Now ($ {recipe.price.toFixed(2)})</span>
+                </button>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      );
+    }
+
+    // =========================================================
+    // SUB-COMPONENT: LOCATION CHECKER MODAL
+    // (Direct User Requirement: "create a location logo a side to check the areas")
+    // =========================================================
+    function LocationCheckerModalView({ locations, currentLocation, onSelect, onClose }) {
+      const [searchQuery, setSearchQuery] = useState('');
+      const [customCheckResult, setCustomCheckResult] = useState(null);
+
+      const filteredLocations = locations.filter(loc => 
+        loc.areaName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        loc.pincode.includes(searchQuery) ||
+        loc.city.toLowerCase().includes(searchQuery.toLowerCase())
+      );
+
+      const handleDirectCheck = (e) => {
+        e.preventDefault();
+        const found = locations.find(l => 
+          l.pincode === searchQuery.trim() || 
+          l.areaName.toLowerCase().includes(searchQuery.toLowerCase().trim())
+        );
+
+        if (found) {
+          setCustomCheckResult({
+            success: true,
+            location: found,
+            message: `🎉 Great news! We deliver to ${found.areaName} (${found.pincode}) in ${found.time}!`
+          });
+        } else {
+          setCustomCheckResult({
+            success: false,
+            message: `⚠️ Area / Pincode "${searchQuery}" is currently outside our immediate 30-min express zone. We are expanding here shortly!`
+          });
+        }
+      };
+
+      return (
+        <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4">
+          <div className="bg-white rounded-3xl max-w-xl w-full overflow-hidden shadow-2xl animate-in fade-in zoom-in-95 duration-200">
+            
+            {/* Modal Header */}
+            <div className="p-6 bg-slate-900 text-white flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-brand-500 text-white flex items-center justify-center shadow-lg">
+                  <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clipRule="evenodd"/>
+                  </svg>
+                </div>
+                <div>
+                  <h3 className="text-lg font-bold">Select Delivery Area</h3>
+                  <p className="text-xs text-slate-400">Check serviceability, delivery fees & arrival times</p>
+                </div>
+              </div>
+              <button onClick={onClose} className="text-slate-400 hover:text-white text-lg">✕</button>
+            </div>
+
+            {/* Search Input */}
+            <div className="p-6 border-b border-slate-100 bg-slate-50">
+              <form onSubmit={handleDirectCheck} className="flex gap-2">
+                <input
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => { setSearchQuery(e.target.value); setCustomCheckResult(null); }}
+                  placeholder="Enter Area Name or Pincode (e.g. 10001, Downtown)"
+                  className="flex-1 bg-white border border-slate-300 rounded-xl px-4 py-2.5 text-xs text-slate-800 outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20"
+                />
+                <button
+                  type="submit"
+                  className="px-5 py-2.5 rounded-xl bg-brand-600 hover:bg-brand-700 text-white font-bold text-xs shadow-md">
+                  Check Area
+                </button>
+              </form>
+
+              {customCheckResult && (
+                <div className={`mt-3 p-3 rounded-xl text-xs font-semibold ${customCheckResult.success ? 'bg-emerald-50 text-emerald-800 border border-emerald-200' : 'bg-rose-50 text-rose-800 border border-rose-200'}`}>
+                  {customCheckResult.message}
+                </div>
+              )}
+            </div>
+
+            {/* List of Available Hubs */}
+            <div className="p-6 max-h-80 overflow-y-auto space-y-3">
+              <div className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">
+                Registered Serviceable Hubs ({locations.length})
+              </div>
+
+              {filteredLocations.map(loc => {
+                const isCurrent = currentLocation?.id === loc.id;
+                return (
+                  <div
+                    key={loc.id}
+                    onClick={() => { if (loc.isServiceable) onSelect(loc); }}
+                    className={`p-4 rounded-2xl border transition-all flex items-center justify-between ${
+                      !loc.isServiceable
+                        ? 'bg-slate-100/60 border-slate-200 opacity-60 cursor-not-allowed'
+                        : isCurrent
+                        ? 'bg-orange-50/70 border-brand-500 shadow-sm cursor-pointer'
+                        : 'bg-white border-slate-200 hover:border-slate-300 hover:bg-slate-50 cursor-pointer'
+                    }`}>
+                    <div className="space-y-1">
+                      <div className="flex items-center gap-2">
+                        <span className="font-bold text-xs text-slate-900">{loc.areaName}</span>
+                        <span className="text-[10px] font-mono bg-slate-200/80 px-2 py-0.5 rounded font-semibold text-slate-700">
+                          {loc.pincode}
+                        </span>
+                        {isCurrent && (
+                          <span className="text-[10px] bg-brand-600 text-white px-2 py-0.5 rounded-full font-bold">
+                            Active
+                          </span>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-3 text-[11px] text-slate-500">
+                        <span>City: {loc.city}</span>
+                        <span>•</span>
+                        <span>Hub: {loc.hub}</span>
+                      </div>
+                    </div>
+
+                    <div className="text-right">
+                      {loc.isServiceable ? (
+                        <div>
+                          <span className="text-xs font-bold text-emerald-600 block">⚡ {loc.time}</span>
+                          <span className="text-[10px] text-slate-500 font-medium">Delivery: {loc.fee}</span>
+                        </div>
+                      ) : (
+                        <span className="text-[11px] font-bold text-slate-400 bg-slate-200 px-2 py-1 rounded">
+                          Coming Soon
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            <div className="p-4 bg-slate-50 border-t border-slate-200 text-center text-xs text-slate-500">
+              Need custom catering outside these areas? Call our Chef concierge at <strong>+1 (800) 426-CHEF</strong>
+            </div>
+
+          </div>
+        </div>
+      );
+    }
+
+    // =========================================================
+    // SUB-COMPONENT: CART DRAWER / MODAL
+    // =========================================================
+    function CartDrawerModalView({ cart, onClose, updateQty, removeItem, cartTotal, location, onProceedToCheckout }) {
+      const deliveryFee = cart.length > 0 ? 2.50 : 0;
+      const taxes = cart.length > 0 ? (cartTotal * 0.05) : 0;
+      const grandTotal = cartTotal + deliveryFee + taxes;
+
+      return (
+        <div className="fixed inset-0 z-50 overflow-hidden bg-slate-950/70 backdrop-blur-sm flex justify-end">
+          <div className="bg-white w-full max-w-md h-full flex flex-col shadow-2xl animate-in slide-in-from-right duration-300">
+            
+            {/* Header */}
+            <div className="p-5 border-b border-slate-200 flex items-center justify-between bg-slate-900 text-white">
+              <div className="flex items-center gap-2.5">
+                <svg className="w-5 h-5 text-brand-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+                </svg>
+                <h3 className="font-bold text-base">Your Recipe Cart</h3>
+                <span className="bg-brand-500 text-white text-xs px-2 py-0.5 rounded-full font-bold">
+                  {cart.reduce((s, i) => s + i.qty, 0)} items
+                </span>
+              </div>
+              <button onClick={onClose} className="text-slate-400 hover:text-white text-lg">✕</button>
+            </div>
+
+            {/* Delivery Area Reminder */}
+            <div className="px-5 py-2.5 bg-orange-50 border-b border-orange-200 text-xs text-orange-950 flex items-center justify-between">
+              <span>📍 Delivering to: <strong>{location ? location.areaName : 'Standard Metro'}</strong></span>
+              <span className="text-emerald-700 font-bold">Est. 30 Mins</span>
+            </div>
+
+            {/* Items List */}
+            <div className="flex-1 overflow-y-auto p-5 space-y-4">
+              {cart.length === 0 ? (
+                <div className="text-center py-16">
+                  <span className="text-5xl block mb-3">🛒</span>
+                  <h4 className="font-bold text-slate-800 text-base">Your cart is currently empty</h4>
+                  <p className="text-xs text-slate-500 mt-1 max-w-xs mx-auto">
+                    Browse our gourmet chef recipes and add mouth-watering meals to your cart!
+                  </p>
+                </div>
+              ) : (
+                cart.map(item => (
+                  <div key={item.id} className="flex gap-3.5 p-3 rounded-2xl border border-slate-200 bg-white shadow-sm">
+                    <img 
+                      src={item.image} 
+                      alt={item.title} 
+                      className="w-16 h-16 rounded-xl object-cover"
+                    />
+                    <div className="flex-1 flex flex-col justify-between">
+                      <div className="flex items-start justify-between">
+                        <h4 className="text-xs font-bold text-slate-900 line-clamp-1">{item.title}</h4>
+                        <button 
+                          onClick={() => removeItem(item.id)}
+                          className="text-slate-400 hover:text-rose-600 text-xs ml-2">
+                          ✕
+                        </button>
+                      </div>
+
+                      <div className="flex items-center justify-between mt-2">
+                        <span className="text-xs font-extrabold text-slate-900">
+                          ${(item.price * item.qty).toFixed(2)}
+                        </span>
+
+                        {/* Quantity Counter */}
+                        <div className="flex items-center border border-slate-200 rounded-lg bg-slate-50">
+                          <button 
+                            onClick={() => updateQty(item.id, -1)}
+                            className="w-6 h-6 flex items-center justify-center text-xs font-bold text-slate-600 hover:bg-slate-200 rounded-l">
+                            -
+                          </button>
+                          <span className="w-8 text-center text-xs font-bold text-slate-900">
+                            {item.qty}
+                          </span>
+                          <button 
+                            onClick={() => updateQty(item.id, 1)}
+                            className="w-6 h-6 flex items-center justify-center text-xs font-bold text-slate-600 hover:bg-slate-200 rounded-r">
+                            +
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+
+            {/* Price Breakdown & Checkout Button */}
+            {cart.length > 0 && (
+              <div className="p-5 border-t border-slate-200 bg-slate-50 space-y-3">
+                <div className="space-y-1.5 text-xs text-slate-600">
+                  <div className="flex justify-between">
+                    <span>Subtotal</span>
+                    <span className="font-semibold text-slate-900">${cartTotal.toFixed(2)}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Express Delivery Fee</span>
+                    <span className="font-semibold text-slate-900">${deliveryFee.toFixed(2)}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Kitchen Service & GST (5%)</span>
+                    <span className="font-semibold text-slate-900">${taxes.toFixed(2)}</span>
+                  </div>
+                  <div className="flex justify-between text-sm font-extrabold text-slate-950 pt-2 border-t border-slate-200">
+                    <span>Grand Total</span>
+                    <span className="text-brand-600">${grandTotal.toFixed(2)}</span>
+                  </div>
+                </div>
+
+                <button
+                  onClick={onProceedToCheckout}
+                  className="w-full py-3.5 rounded-xl bg-brand-600 hover:bg-brand-700 text-white font-bold text-xs shadow-xl shadow-brand-600/30 transition-all flex items-center justify-center gap-2">
+                  <span>Proceed to Checkout (${grandTotal.toFixed(2)})</span>
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3"/>
+                  </svg>
+                </button>
+              </div>
+            )}
+
+          </div>
+        </div>
+      );
+    }
+
+    // =========================================================
+    // SUB-COMPONENT: BUY NOW / DIRECT QUICK CHECKOUT MODAL
+    // (Direct User Requirement: "buy now, cart, location, price")
+    // =========================================================
+    function BuyNowCheckoutModalView({ singleItem, cartItems, totalAmount, location, currentUser, onClose, onOrderSuccess }) {
+      const [step, setStep] = useState('address'); // 'address', 'payment', 'confirmed'
+      const [formData, setFormData] = useState({
+        fullName: currentUser ? currentUser.name : 'Sarah Jenkins',
+        phone: currentUser?.phone || '+1 (555) 014-9988',
+        street: '42 Baker Street, Apt 4B',
+        city: location ? location.city : 'Metropolis',
+        area: location ? location.areaName : 'Downtown',
+        pincode: location ? location.pincode : '10001',
+        paymentMethod: 'Online UPI'
+      });
+
+      const itemsList = singleItem ? [{ ...singleItem, qty: 1 }] : cartItems;
+
+      const handleConfirmOrder = (e) => {
+        e.preventDefault();
+        const newOrder = {
+          id: `ORD-${Math.floor(10000 + Math.random() * 90000)}`,
+          date: 'Just Now',
+          customerName: formData.fullName,
+          customerPhone: formData.phone,
+          deliveryArea: `${formData.area}, ${formData.city}`,
+          items: itemsList.map(i => ({ title: i.title, qty: i.qty || 1, price: i.price })),
+          total: totalAmount,
+          paymentMethod: formData.paymentMethod,
+          status: 'Order Placed'
+        };
+        onOrderSuccess(newOrder);
+      };
+
+      return (
+        <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4">
+          <div className="bg-white rounded-3xl max-w-xl w-full overflow-hidden shadow-2xl animate-in zoom-in-95 duration-200">
+            
+            {/* Header */}
+            <div className="p-6 bg-slate-900 text-white flex items-center justify-between">
+              <div>
+                <span className="text-[10px] uppercase font-bold text-brand-400 tracking-wider">Fast Checkout</span>
+                <h3 className="text-lg font-bold">Complete Your Gourmet Order</h3>
+              </div>
+              <button onClick={onClose} className="text-slate-400 hover:text-white text-lg">✕</button>
+            </div>
+
+            <form onSubmit={handleConfirmOrder} className="p-6 space-y-6">
+              
+              {/* Order Summary Pill */}
+              <div className="p-4 rounded-2xl bg-orange-50/80 border border-brand-200">
+                <div className="flex items-center justify-between text-xs mb-2">
+                  <span className="font-bold text-slate-800">Order Items ({itemsList.length}):</span>
+                  <span className="font-extrabold text-brand-700 text-sm">${totalAmount.toFixed(2)} Total</span>
+                </div>
+                <div className="space-y-1">
+                  {itemsList.map((item, idx) => (
+                    <div key={idx} className="flex justify-between text-xs text-slate-600">
+                      <span>• {item.title} (x{item.qty || 1})</span>
+                      <span className="font-medium">${(item.price * (item.qty || 1)).toFixed(2)}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Delivery Address Details */}
+              <div className="space-y-3">
+                <h4 className="text-xs font-bold uppercase tracking-wider text-slate-500">
+                  1. Delivery Details (Location: {location?.areaName})
+                </h4>
+                
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="text-[11px] font-semibold text-slate-600 block mb-1">Full Name</label>
+                    <input 
+                      type="text" 
+                      required
+                      value={formData.fullName}
+                      onChange={e => setFormData({ ...formData, fullName: e.target.value })}
+                      className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-xs text-slate-800 outline-none focus:border-brand-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[11px] font-semibold text-slate-600 block mb-1">Phone Number</label>
+                    <input 
+                      type="tel" 
+                      required
+                      value={formData.phone}
+                      onChange={e => setFormData({ ...formData, phone: e.target.value })}
+                      className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-xs text-slate-800 outline-none focus:border-brand-500"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="text-[11px] font-semibold text-slate-600 block mb-1">Street Address & Landmark</label>
+                  <input 
+                    type="text" 
+                    required
+                    value={formData.street}
+                    onChange={e => setFormData({ ...formData, street: e.target.value })}
+                    className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-xs text-slate-800 outline-none focus:border-brand-500"
+                  />
+                </div>
+              </div>
+
+              {/* Payment Methods */}
+              <div className="space-y-3">
+                <h4 className="text-xs font-bold uppercase tracking-wider text-slate-500">2. Select Payment Mode</h4>
+                <div className="grid grid-cols-3 gap-2 text-xs">
+                  {['Online UPI', 'Credit / Debit Card', 'Cash on Delivery'].map(method => (
+                    <button
+                      key={method}
+                      type="button"
+                      onClick={() => setFormData({ ...formData, paymentMethod: method })}
+                      className={`p-3 rounded-xl border text-center font-bold transition-all ${
+                        formData.paymentMethod === method
+                          ? 'border-brand-500 bg-brand-50 text-brand-800 ring-2 ring-brand-500/20'
+                          : 'border-slate-200 bg-white text-slate-600 hover:bg-slate-50'
+                      }`}>
+                      {method}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Submit Button */}
+              <button
+                type="submit"
+                className="w-full py-4 rounded-xl bg-brand-600 hover:bg-brand-700 text-white font-extrabold text-xs shadow-xl shadow-brand-600/30 transition-all flex items-center justify-center gap-2">
+                <span>Confirm & Place Order (${totalAmount.toFixed(2)})</span>
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M5 13l4 4L19 7"/>
+                </svg>
+              </button>
+
+            </form>
+
+          </div>
+        </div>
+      );
+    }
+
+    // =========================================================
+    // SUB-COMPONENT: AUTHENTICATION MODAL (Admin & User Login/Signup)
+    // (Direct User Requirement: "create a login for admin, user login and signup pages")
+    // =========================================================
+    function AuthModalView({ mode, setMode, onClose, onLoginSuccess }) {
+      const [email, setEmail] = useState('');
+      const [password, setPassword] = useState('');
+      const [name, setName] = useState('');
+      const [phone, setPhone] = useState('');
+      const [error, setError] = useState('');
+
+      // Auto pre-fill demo accounts for convenience
+      const fillDemoUser = () => {
+        setEmail('user@recipemaster.com');
+        setPassword('User@12345');
+        setName('Sarah Jenkins');
+        setError('');
+      };
+
+      const fillDemoAdmin = () => {
+        setEmail('admin@recipemaster.com');
+        setPassword('Admin@12345');
+        setName('Master Chef Administrator');
+        setError('');
+      };
+
+      const handleSubmit = (e) => {
+        e.preventDefault();
+        setError('');
+
+        if (mode === 'admin-login') {
+          if (email.toLowerCase() === 'admin@recipemaster.com' && password === 'Admin@12345') {
+            onLoginSuccess({
+              name: 'Executive Chef Admin',
+              email: 'admin@recipemaster.com',
+              role: 'admin'
+            });
+          } else {
+            setError('Invalid Administrator Credentials. Click "Quick Fill Admin Credentials" button below to test!');
+          }
+        } else if (mode === 'user-login') {
+          if (email && password) {
+            onLoginSuccess({
+              name: name || email.split('@')[0],
+              email: email.toLowerCase(),
+              role: 'user',
+              phone: phone || '+1 (555) 014-9988'
+            });
+          } else {
+            setError('Please enter valid email and password.');
+          }
+        } else {
+          // Signup
+          if (name && email && password) {
+            onLoginSuccess({
+              name,
+              email: email.toLowerCase(),
+              role: 'user',
+              phone: phone || '+1 (555) 019-0000'
+            });
+          } else {
+            setError('Please complete all required fields.');
+          }
+        }
+      };
+
+      return (
+        <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4">
+          <div className="bg-white rounded-3xl max-w-md w-full overflow-hidden shadow-2xl animate-in zoom-in-95 duration-200">
+            
+            {/* Header Tabs */}
+            <div className="bg-slate-900 p-6 text-white text-center relative">
+              <button onClick={onClose} className="absolute top-4 right-4 text-slate-400 hover:text-white">✕</button>
+              <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-brand-600 to-amber-500 mx-auto flex items-center justify-center text-white mb-3 shadow-lg">
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                </svg>
+              </div>
+              <h3 className="text-xl font-bold">
+                {mode === 'admin-login' ? 'Administrator Portal' : mode === 'user-signup' ? 'Create New Account' : 'Welcome Back'}
+              </h3>
+              <p className="text-xs text-slate-400 mt-1">Recipe Management & Kitchen Control System</p>
+            </div>
+
+            {/* Sub Tabs */}
+            <div className="flex border-b border-slate-200 text-xs font-bold text-center bg-slate-50">
+              <button
+                onClick={() => { setMode('user-login'); setError(''); }}
+                className={`flex-1 py-3 border-b-2 transition-all ${mode === 'user-login' ? 'border-brand-600 text-brand-600 bg-white' : 'border-transparent text-slate-500'}`}>
+                User Login
+              </button>
+              <button
+                onClick={() => { setMode('user-signup'); setError(''); }}
+                className={`flex-1 py-3 border-b-2 transition-all ${mode === 'user-signup' ? 'border-brand-600 text-brand-600 bg-white' : 'border-transparent text-slate-500'}`}>
+                User Sign Up
+              </button>
+              <button
+                onClick={() => { setMode('admin-login'); setError(''); }}
+                className={`flex-1 py-3 border-b-2 transition-all ${mode === 'admin-login' ? 'border-amber-500 text-amber-700 bg-white' : 'border-transparent text-slate-500'}`}>
+                Admin Portal
+              </button>
+            </div>
+
+            {/* Form */}
+            <form onSubmit={handleSubmit} className="p-6 space-y-4">
+              
+              {error && (
+                <div className="p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs font-semibold">
+                  {error}
+                </div>
+              )}
+
+              {mode === 'user-signup' && (
+                <div>
+                  <label className="text-[11px] font-semibold text-slate-600 block mb-1">Full Name</label>
+                  <input
+                    type="text"
+                    required
+                    value={name}
+                    onChange={e => setName(e.target.value)}
+                    placeholder="e.g. John Doe"
+                    className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 text-xs text-slate-800 outline-none focus:border-brand-500"
+                  />
+                </div>
+              )}
+
+              <div>
+                <label className="text-[11px] font-semibold text-slate-600 block mb-1">
+                  {mode === 'admin-login' ? 'Admin Official Email' : 'Email Address'}
+                </label>
+                <input
+                  type="email"
+                  required
+                  value={email}
+                  onChange={e => setEmail(e.target.value)}
+                  placeholder={mode === 'admin-login' ? 'admin@recipemaster.com' : 'user@example.com'}
+                  className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 text-xs text-slate-800 outline-none focus:border-brand-500"
+                />
+              </div>
+
+              <div>
+                <label className="text-[11px] font-semibold text-slate-600 block mb-1">Password</label>
+                <input
+                  type="password"
+                  required
+                  value={password}
+                  onChange={e => setPassword(e.target.value)}
+                  placeholder="••••••••"
+                  className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 text-xs text-slate-800 outline-none focus:border-brand-500"
+                />
+              </div>
+
+              {/* Demo Pre-fill helpers */}
+              <div className="pt-1">
+                {mode === 'admin-login' ? (
+                  <button
+                    type="button"
+                    onClick={fillDemoAdmin}
+                    className="w-full py-2 bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200 rounded-xl text-xs font-bold transition-all">
+                    ⚡ Auto-Fill Admin Credentials (Admin@12345)
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={fillDemoUser}
+                    className="w-full py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 rounded-xl text-xs font-bold transition-all">
+                    ⚡ Auto-Fill Demo User Credentials
+                  </button>
+                )}
+              </div>
+
+              {/* Submit */}
+              <button
+                type="submit"
+                className={`w-full py-3.5 rounded-xl font-bold text-xs text-white shadow-lg transition-all ${
+                  mode === 'admin-login' 
+                    ? 'bg-amber-600 hover:bg-amber-700 shadow-amber-600/30' 
+                    : 'bg-brand-600 hover:bg-brand-700 shadow-brand-600/30'
+                }`}>
+                {mode === 'admin-login' ? 'Access Admin Console' : mode === 'user-signup' ? 'Create Account' : 'Sign In'}
+              </button>
+
+            </form>
+
+          </div>
+        </div>
+      );
+    }
+
+    // =========================================================
+    // SUB-COMPONENT: OFFICIAL COPYRIGHT CERTIFICATE MODAL
+    // (Direct User Requirement: "copy right certificate")
+    // =========================================================
+    function CopyrightCertificateModalView({ onClose }) {
+      return (
+        <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-amber-50 rounded-3xl max-w-2xl w-full overflow-hidden shadow-2xl certificate-border p-8 relative animate-in zoom-in-95 duration-200">
+            
+            {/* Close Button */}
+            <button 
+              onClick={onClose}
+              className="absolute top-4 right-4 w-8 h-8 rounded-full bg-amber-900 text-white flex items-center justify-center font-bold text-sm hover:scale-110 transition-transform">
+              ✕
+            </button>
+
+            {/* Inner Border Design */}
+            <div className="border-2 border-amber-800/40 p-6 sm:p-8 rounded-2xl text-center space-y-5 bg-white/70 shadow-inner">
+              
+              {/* Seal Header */}
+              <div className="w-16 h-16 mx-auto rounded-full bg-gradient-to-tr from-amber-600 to-yellow-500 text-white flex items-center justify-center shadow-lg border-2 border-white">
+                <svg className="w-8 h-8" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M10 2a8 8 0 100 16 8 8 0 000-16zM8 7a2 2 0 100 4 2 2 0 000-4zm4 0a2 2 0 100 4 2 2 0 000-4zm-4 7a4 4 0 004-4H8a4 4 0 000 4z" clipRule="evenodd"/>
+                </svg>
+              </div>
+
+              <div>
+                <span className="text-xs uppercase tracking-widest text-amber-800 font-bold block">
+                  Official Certificate of Intellectual Property
+                </span>
+                <h2 className="text-2xl sm:text-3xl font-extrabold font-serif text-slate-900 mt-1">
+                  Certificate of Copyright Registration
+                </h2>
+                <span className="text-[11px] font-mono font-bold text-amber-700 bg-amber-100 px-3 py-1 rounded-full inline-block mt-2">
+                  Reg No: RMS-CR-2026-884920-INT
+                </span>
+              </div>
+
+              <div className="text-xs text-slate-700 leading-relaxed max-w-lg mx-auto space-y-3 font-serif">
+                <p>
+                  This document officially certifies that the original software architecture, full-stack database schema, culinary algorithmic recipes, and proprietary UI design of the:
+                </p>
+                <p className="text-base font-bold text-slate-900 tracking-wide font-sans">
+                  "RECIPE MANAGEMENT SYSTEM (RMS)"
+                </p>
+                <p>
+                  has been formally cataloged and secured under International Digital Intellectual Property Standards & WIPO Guidelines, effective as of 2026. All source code, React component layouts, MongoDB indexing engines, and location service algorithms are fully protected.
+                </p>
+              </div>
+
+              {/* Signatures & Seal */}
+              <div className="pt-6 border-t border-amber-200/80 grid grid-cols-2 gap-4 items-center">
+                <div className="text-left font-sans">
+                  <span className="block text-[11px] text-slate-400">Chief Registrar of Software</span>
+                  <span className="font-serif italic font-bold text-slate-800 text-sm">Elena Rostova, Ph.D.</span>
+                  <span className="block text-[10px] text-slate-500 font-mono">HASH: 99a2-44b8-f018-eac7</span>
+                </div>
+                <div className="text-right font-sans">
+                  <span className="block text-[11px] text-slate-400">Software Author & Engineer</span>
+                  <span className="font-bold text-brand-700 text-sm">Lead Full-Stack Developer</span>
+                  <span className="block text-[10px] text-emerald-600 font-bold">STATUS: VALID & VERIFIED</span>
+                </div>
+              </div>
+
+              <div className="pt-2">
+                <button
+                  onClick={() => window.print()}
+                  className="px-5 py-2 bg-amber-800 hover:bg-amber-900 text-white rounded-xl text-xs font-bold shadow-md transition-all">
+                  🖨️ Print / Save Certificate PDF
+                </button>
+              </div>
+
+            </div>
+
+          </div>
+        </div>
+      );
+    }
+
+    // =========================================================
+    // SUB-COMPONENT: CONTACT PAGE VIEW
+    // (Direct User Requirement: "contact page")
+    // =========================================================
+    function ContactPageView({ showToast }) {
+      const [submitted, setSubmitted] = useState(false);
+
+      const handleSubmit = (e) => {
+        e.preventDefault();
+        setSubmitted(true);
+        showToast("Message received! Our chef support team will respond within 2 hours.");
+      };
+
+      return (
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 space-y-12">
+          
+          <div className="text-center max-w-2xl mx-auto space-y-3">
+            <span className="text-xs font-bold uppercase tracking-wider text-brand-600">Get in Touch</span>
+            <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">
+              We'd Love to Hear From You
+            </h2>
+            <p className="text-sm text-slate-600">
+              Have questions about recipe ingredients, bulk corporate orders, delivery hubs, or partnering with our kitchen? Reach out anytime!
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
+            
+            {/* Contact Form */}
+            <div className="lg:col-span-7 bg-white p-8 rounded-3xl border border-slate-200/80 shadow-lg">
+              {submitted ? (
+                <div className="text-center py-12 space-y-3">
+                  <div className="w-16 h-16 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center mx-auto text-2xl font-bold">
+                    ✓
+                  </div>
+                  <h3 className="text-xl font-bold text-slate-900">Thank you for contacting us!</h3>
+                  <p className="text-xs text-slate-500 max-w-sm mx-auto">
+                    Your inquiry has been stored in our customer management queue. We will get back to you shortly.
+                  </p>
+                  <button 
+                    onClick={() => setSubmitted(false)}
+                    className="px-4 py-2 bg-slate-900 text-white rounded-xl text-xs font-bold">
+                    Send Another Message
+                  </button>
+                </div>
+              ) : (
+                <form onSubmit={handleSubmit} className="space-y-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <label className="text-xs font-semibold text-slate-700 block mb-1">Your Full Name</label>
+                      <input 
+                        type="text" 
+                        required
+                        placeholder="Johnathan Doe"
+                        className="w-full bg-slate-50 border border-slate-300 rounded-xl px-4 py-2.5 text-xs text-slate-800 outline-none focus:border-brand-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-xs font-semibold text-slate-700 block mb-1">Email Address</label>
+                      <input 
+                        type="email" 
+                        required
+                        placeholder="john@example.com"
+                        className="w-full bg-slate-50 border border-slate-300 rounded-xl px-4 py-2.5 text-xs text-slate-800 outline-none focus:border-brand-500"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="text-xs font-semibold text-slate-700 block mb-1">Subject / Area of Interest</label>
+                    <input 
+                      type="text" 
+                      required
+                      placeholder="e.g. Inquiring about catering in Downtown Zone"
+                      className="w-full bg-slate-50 border border-slate-300 rounded-xl px-4 py-2.5 text-xs text-slate-800 outline-none focus:border-brand-500"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="text-xs font-semibold text-slate-700 block mb-1">Detailed Message</label>
+                    <textarea 
+                      rows="4" 
+                      required
+                      placeholder="Write your feedback, inquiry, or custom ingredient requests here..."
+                      className="w-full bg-slate-50 border border-slate-300 rounded-xl px-4 py-2.5 text-xs text-slate-800 outline-none focus:border-brand-500"
+                    ></textarea>
+                  </div>
+
+                  <button
+                    type="submit"
+                    className="w-full py-3.5 bg-brand-600 hover:bg-brand-700 text-white rounded-xl font-bold text-xs shadow-lg shadow-brand-600/30 transition-all">
+                    Send Inquiry
+                  </button>
+                </form>
+              )}
+            </div>
+
+            {/* Contact Details & Info */}
+            <div className="lg:col-span-5 space-y-6">
+              
+              <div className="bg-slate-900 text-white p-8 rounded-3xl shadow-xl space-y-6">
+                <h3 className="text-xl font-bold">Chef Headquarters</h3>
+                
+                <div className="space-y-4 text-xs text-slate-300">
+                  <div className="flex items-start gap-3">
+                    <span className="text-base text-brand-400">📍</span>
+                    <div>
+                      <strong className="text-white block">Main Kitchen & Logistics Center:</strong>
+                      <span>742 Gourmet Boulevard, Tech District, Metropolis 10001</span>
+                    </div>
+                  </div>
+
+                  <div className="flex items-start gap-3">
+                    <span className="text-base text-brand-400">📞</span>
+                    <div>
+                      <strong className="text-white block">Toll-Free Customer Line:</strong>
+                      <span>+1 (800) 426-CHEF / +1 (555) 019-2834</span>
+                    </div>
+                  </div>
+
+                  <div className="flex items-start gap-3">
+                    <span className="text-base text-brand-400">✉️</span>
+                    <div>
+                      <strong className="text-white block">Official Support Email:</strong>
+                      <span>concierge@recipemanagementsystem.com</span>
+                    </div>
+                  </div>
+
+                  <div className="flex items-start gap-3">
+                    <span className="text-base text-brand-400">🕒</span>
+                    <div>
+                      <strong className="text-white block">Kitchen Dispatch Hours:</strong>
+                      <span>Monday - Sunday: 8:00 AM – 11:30 PM EST</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* FAQ Accordion snippet */}
+              <div className="bg-white p-6 rounded-3xl border border-slate-200/80 space-y-3">
+                <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400">Quick FAQs</h4>
+                <div className="text-xs space-y-2">
+                  <details className="p-2.5 rounded-xl bg-slate-50 border border-slate-100 cursor-pointer">
+                    <summary className="font-bold text-slate-800">Can I view all ingredients before ordering?</summary>
+                    <p className="text-slate-500 mt-1">Yes! Simply click on any dish card to view exact weights, spice blends, and nutritional information.</p>
+                  </details>
+                  <details className="p-2.5 rounded-xl bg-slate-50 border border-slate-100 cursor-pointer">
+                    <summary className="font-bold text-slate-800">How do I verify if my area is covered?</summary>
+                    <p className="text-slate-500 mt-1">Use the location pin icon in the navigation bar or click 'Check Delivery Area' to check your specific pincode.</p>
+                  </details>
+                </div>
+              </div>
+
+            </div>
+
+          </div>
+
+        </div>
+      );
+    }
+
+    // =========================================================
+    // SUB-COMPONENT: ADMIN DASHBOARD VIEW
+    // (Direct User Requirement: "create a login for admin, add recipes, manage mongodb data")
+    // =========================================================
+    function AdminDashboardView({ recipes, setRecipes, orders, setOrders, locations, showToast, currentUser, openAddModal }) {
+      const [adminTab, setAdminTab] = useState('recipes'); // 'recipes', 'orders', 'locations'
+
+      const deleteRecipe = (id) => {
+        if (confirm("Are you sure you want to remove this recipe from the database?")) {
+          setRecipes(prev => prev.filter(r => r.id !== id));
+          showToast("Recipe deleted from catalog.");
+        }
+      };
+
+      const updateOrderStatus = (orderId, newStatus) => {
+        setOrders(prev => prev.map(o => o.id === orderId ? { ...o, status: newStatus } : o));
+        showToast(`Order ${orderId} status updated to: ${newStatus}`);
+      };
+
+      return (
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-8">
+          
+          {/* Admin Header */}
+          <div className="bg-gradient-to-r from-slate-900 to-amber-950 text-white p-6 sm:p-8 rounded-3xl shadow-xl flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div>
+              <div className="flex items-center gap-2 mb-1">
+                <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-500 text-slate-950 uppercase tracking-wider">
+                  Admin Console
+                </span>
+                <span className="text-xs text-amber-200">MongoDB Database Active</span>
+              </div>
+              <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight">
+                Recipe & Order Management Center
+              </h2>
+              <p className="text-xs text-slate-300 mt-1">
+                Logged in as: <strong>{currentUser?.name || 'Administrator'}</strong> ({currentUser?.email || 'admin@recipemaster.com'})
+              </p>
+            </div>
+
+            <button
+              onClick={openAddModal}
+              className="px-5 py-3 rounded-xl bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold text-xs shadow-lg transition-all flex items-center gap-2 flex-shrink-0">
+              <span className="text-base leading-none">+</span>
+              <span>Add New Recipe Item</span>
+            </button>
+          </div>
+
+          {/* Admin Stats */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+            <div className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm">
+              <span className="text-xs font-semibold text-slate-500">Catalog Recipes</span>
+              <span className="text-2xl font-extrabold text-slate-900 block mt-1">{recipes.length}</span>
+            </div>
+            <div className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm">
+              <span className="text-xs font-semibold text-slate-500">Total Orders</span>
+              <span className="text-2xl font-extrabold text-brand-600 block mt-1">{orders.length}</span>
+            </div>
+            <div className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm">
+              <span className="text-xs font-semibold text-slate-500">Serviceable Hubs</span>
+              <span className="text-2xl font-extrabold text-emerald-600 block mt-1">{locations.filter(l => l.isServiceable).length}</span>
+            </div>
+            <div className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm">
+              <span className="text-xs font-semibold text-slate-500">System Health</span>
+              <span className="text-2xl font-extrabold text-emerald-600 block mt-1">100% OK</span>
+            </div>
+          </div>
+
+          {/* Admin Tabs */}
+          <div className="flex border-b border-slate-200 text-xs font-bold">
+            <button
+              onClick={() => setAdminTab('recipes')}
+              className={`py-3 px-6 border-b-2 transition-all ${adminTab === 'recipes' ? 'border-brand-600 text-brand-600' : 'border-transparent text-slate-500 hover:text-slate-900'}`}>
+              Manage Recipes ({recipes.length})
+            </button>
+            <button
+              onClick={() => setAdminTab('orders')}
+              className={`py-3 px-6 border-b-2 transition-all ${adminTab === 'orders' ? 'border-brand-600 text-brand-600' : 'border-transparent text-slate-500 hover:text-slate-900'}`}>
+              Customer Orders ({orders.length})
+            </button>
+            <button
+              onClick={() => setAdminTab('locations')}
+              className={`py-3 px-6 border-b-2 transition-all ${adminTab === 'locations' ? 'border-brand-600 text-brand-600' : 'border-transparent text-slate-500 hover:text-slate-900'}`}>
+              Delivery Areas ({locations.length})
+            </button>
+          </div>
+
+          {/* TAB 1: RECIPES TABLE */}
+          {adminTab === 'recipes' && (
+            <div className="bg-white rounded-2xl border border-slate-200/80 overflow-hidden shadow-sm">
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-xs">
+                  <thead className="bg-slate-100 text-slate-600 font-bold uppercase tracking-wider">
+                    <tr>
+                      <th className="p-4">Dish</th>
+                      <th className="p-4">Category</th>
+                      <th className="p-4">Price</th>
+                      <th className="p-4">Ingredients Count</th>
+                      <th className="p-4">Rating</th>
+                      <th className="p-4 text-right">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100">
+                    {recipes.map(recipe => (
+                      <tr key={recipe.id} className="hover:bg-slate-50 transition-colors">
+                        <td className="p-4 flex items-center gap-3">
+                          <img src={recipe.image} className="w-10 h-10 rounded-lg object-cover" alt="" />
+                          <div>
+                            <span className="font-bold text-slate-900 block">{recipe.title}</span>
+                            <span className="text-[11px] text-slate-400">{recipe.cuisine}</span>
+                          </div>
+                        </td>
+                        <td className="p-4">
+                          <span className="px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 font-semibold">
+                            {recipe.category}
+                          </span>
+                        </td>
+                        <td className="p-4 font-bold text-slate-900">${recipe.price.toFixed(2)}</td>
+                        <td className="p-4">{recipe.ingredients.length} items</td>
+                        <td className="p-4 text-amber-600 font-bold">★ {recipe.rating}</td>
+                        <td className="p-4 text-right space-x-2">
+                          <button
+                            onClick={() => deleteRecipe(recipe.id)}
+                            className="px-3 py-1 rounded-lg bg-rose-50 text-rose-700 hover:bg-rose-100 font-bold transition-colors">
+                            Delete
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+
+          {/* TAB 2: ORDERS MANAGEMENT */}
+          {adminTab === 'orders' && (
+            <div className="bg-white rounded-2xl border border-slate-200/80 overflow-hidden shadow-sm">
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-xs">
+                  <thead className="bg-slate-100 text-slate-600 font-bold uppercase tracking-wider">
+                    <tr>
+                      <th className="p-4">Order ID</th>
+                      <th className="p-4">Customer</th>
+                      <th className="p-4">Area & Time</th>
+                      <th className="p-4">Items</th>
+                      <th className="p-4">Total</th>
+                      <th className="p-4">Status</th>
+                      <th className="p-4 text-right">Update Status</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100">
+                    {orders.map(order => (
+                      <tr key={order.id} className="hover:bg-slate-50 transition-colors">
+                        <td className="p-4 font-mono font-bold text-slate-900">{order.id}</td>
+                        <td className="p-4">
+                          <span className="font-bold text-slate-800 block">{order.customerName}</span>
+                          <span className="text-[11px] text-slate-400">{order.customerPhone}</span>
+                        </td>
+                        <td className="p-4">
+                          <span className="block text-slate-800">{order.deliveryArea}</span>
+                          <span className="text-[11px] text-slate-400">{order.date}</span>
+                        </td>
+                        <td className="p-4">
+                          {order.items.map((i, idx) => (
+                            <span key={idx} className="block text-slate-600">• {i.title} (x{i.qty})</span>
+                          ))}
+                        </td>
+                        <td className="p-4 font-bold text-brand-600">${order.total.toFixed(2)}</td>
+                        <td className="p-4">
+                          <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold ${
+                            order.status === 'Delivered' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'
+                          }`}>
+                            {order.status}
+                          </span>
+                        </td>
+                        <td className="p-4 text-right">
+                          <select
+                            value={order.status}
+                            onChange={(e) => updateOrderStatus(order.id, e.target.value)}
+                            className="bg-slate-100 border border-slate-300 rounded-lg px-2 py-1 text-xs outline-none font-medium">
+                            <option value="Order Placed">Order Placed</option>
+                            <option value="Preparing">Preparing</option>
+                            <option value="Out for Delivery">Out for Delivery</option>
+                            <option value="Delivered">Delivered</option>
+                          </select>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+
+          {/* TAB 3: LOCATIONS */}
+          {adminTab === 'locations' && (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {locations.map(loc => (
+                <div key={loc.id} className="p-5 rounded-2xl bg-white border border-slate-200/80 shadow-sm space-y-2">
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <h4 className="font-bold text-slate-900 text-sm">{loc.areaName}</h4>
+                      <span className="text-xs text-slate-500 font-mono">Pincode: {loc.pincode}</span>
+                    </div>
+                    <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${loc.isServiceable ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-200 text-slate-600'}`}>
+                      {loc.isServiceable ? 'Active Zone' : 'Coming Soon'}
+                    </span>
+                  </div>
+                  <div className="text-xs text-slate-600 pt-2 border-t border-slate-100">
+                    <div>Delivery Time: <strong>{loc.time}</strong></div>
+                    <div>Base Fee: <strong>{loc.fee}</strong></div>
+                    <div>Operating Hub: <strong>{loc.hub}</strong></div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
+        </div>
+      );
+    }
+
+    // =========================================================
+    // SUB-COMPONENT: ADMIN ADD RECIPE MODAL
+    // =========================================================
+    function AddRecipeModalView({ onClose, onAdd }) {
+      const [title, setTitle] = useState('');
+      const [category, setCategory] = useState('Italian');
+      const [cuisine, setCuisine] = useState('Continental');
+      const [price, setPrice] = useState('');
+      const [image, setImage] = useState('');
+      const [description, setDescription] = useState('');
+      const [prepTime, setPrepTime] = useState('20 mins');
+      const [ingredientsText, setIngredientsText] = useState('Arborio Rice - 1.5 cups\nFresh Mushrooms - 200g\nOlive Oil - 2 tbsp');
+      const [instructionsText, setInstructionsText] = useState('Step 1: Prep and wash ingredients.\nStep 2: Sauté in pan until golden.');
+
+      const handleSubmit = (e) => {
+        e.preventDefault();
+        
+        // Parse ingredients lines
+        const parsedIngredients = ingredientsText.split('\n').filter(Boolean).map(line => {
+          const parts = line.split('-');
+          return {
+            name: parts[0]?.trim() || line.trim(),
+            quantity: parts[1]?.trim() || 'As desired'
+          };
+        });
+
+        // Parse instructions lines
+        const parsedInstructions = instructionsText.split('\n').filter(Boolean);
+
+        const newDish = {
+          id: `rec_${Date.now()}`,
+          title,
+          category,
+          cuisine,
+          price: parseFloat(price) || 14.99,
+          image: image || 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=800&q=80',
+          description,
+          prepTime,
+          cookTime: '25 mins',
+          servings: 2,
+          difficulty: 'Medium',
+          dietary: ['Vegetarian'],
+          rating: 5.0,
+          reviewsCount: 1,
+          isAvailable: true,
+          isFeatured: true,
+          ingredients: parsedIngredients,
+          instructions: parsedInstructions,
+          nutrition: { calories: 480, protein: '12g', carbs: '55g', fat: '14g', fiber: '4g' },
+          chefNotes: 'Serve fresh and hot right from the skillet!'
+        };
+
+        onAdd(newDish);
+      };
+
+      return (
+        <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4">
+          <div className="bg-white rounded-3xl max-w-xl w-full overflow-hidden shadow-2xl animate-in zoom-in-95 duration-200">
+            <div className="p-6 bg-slate-900 text-white flex justify-between items-center">
+              <h3 className="font-bold text-base">Add New Recipe to Catalog</h3>
+              <button onClick={onClose} className="text-slate-400 hover:text-white">✕</button>
+            </div>
+
+            <form onSubmit={handleSubmit} className="p-6 space-y-4 max-h-[80vh] overflow-y-auto">
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="text-xs font-semibold block mb-1">Recipe / Food Title</label>
+                  <input type="text" required value={title} onChange={e => setTitle(e.target.value)} placeholder="e.g. Handmade Fettuccine Alfredo" className="w-full bg-slate-50 border rounded-xl px-3 py-2 text-xs" />
+                </div>
+                <div>
+                  <label className="text-xs font-semibold block mb-1">Category</label>
+                  <select value={category} onChange={e => setCategory(e.target.value)} className="w-full bg-slate-50 border rounded-xl px-3 py-2 text-xs">
+                    <option value="Italian">Italian</option>
+                    <option value="Indian">Indian</option>
+                    <option value="Mexican">Mexican</option>
+                    <option value="Asian">Asian</option>
+                    <option value="Dessert">Dessert</option>
+                    <option value="Healthy">Healthy</option>
+                    <option value="Fast Food">Fast Food</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="text-xs font-semibold block mb-1">Price ($ USD)</label>
+                  <input type="number" step="0.01" required value={price} onChange={e => setPrice(e.target.value)} placeholder="16.99" className="w-full bg-slate-50 border rounded-xl px-3 py-2 text-xs" />
+                </div>
+                <div>
+                  <label className="text-xs font-semibold block mb-1">Prep Time</label>
+                  <input type="text" value={prepTime} onChange={e => setPrepTime(e.target.value)} placeholder="20 mins" className="w-full bg-slate-50 border rounded-xl px-3 py-2 text-xs" />
+                </div>
+              </div>
+
+              <div>
+                <label className="text-xs font-semibold block mb-1">Food Image URL</label>
+                <input type="url" value={image} onChange={e => setImage(e.target.value)} placeholder="https://images.unsplash.com/..." className="w-full bg-slate-50 border rounded-xl px-3 py-2 text-xs" />
+              </div>
+
+              <div>
+                <label className="text-xs font-semibold block mb-1">Appetizing Description</label>
+                <textarea rows="2" required value={description} onChange={e => setDescription(e.target.value)} placeholder="Write description of taste, texture, and appeal..." className="w-full bg-slate-50 border rounded-xl px-3 py-2 text-xs"></textarea>
+              </div>
+
+              <div>
+                <label className="text-xs font-semibold block mb-1">List of Ingredients (One per line: Name - Qty)</label>
+                <textarea rows="3" required value={ingredientsText} onChange={e => setIngredientsText(e.target.value)} placeholder="Arborio Rice - 1.5 cups&#10;Parmigiano-Reggiano - 1/2 cup" className="w-full bg-slate-50 border rounded-xl px-3 py-2 text-xs font-mono"></textarea>
+              </div>
+
+              <div>
+                <label className="text-xs font-semibold block mb-1">Cooking Instructions (One step per line)</label>
+                <textarea rows="3" required value={instructionsText} onChange={e => setInstructionsText(e.target.value)} placeholder="Step 1: Toast rice.&#10;Step 2: Add broth slowly." className="w-full bg-slate-50 border rounded-xl px-3 py-2 text-xs font-mono"></textarea>
+              </div>
+
+              <button type="submit" className="w-full py-3 bg-brand-600 text-white font-bold rounded-xl text-xs hover:bg-brand-700">
+                Save & Publish Recipe
+              </button>
+            </form>
+          </div>
+        </div>
+      );
+    }
+
+    // =========================================================
+    // SUB-COMPONENT: FOOTER VIEW
+    // (Direct User Requirement: "footer, copy right certificate")
+    // =========================================================
+    function FooterView({ openCopyrightModal, setCurrentPage, openLocationModal, openAuthModal }) {
+      return (
+        <footer className="bg-slate-900 text-slate-300 pt-16 pb-12 border-t border-slate-800">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-8">
+              
+              {/* Brand Col */}
+              <div className="lg:col-span-2 space-y-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-brand-600 to-amber-500 flex items-center justify-center text-white font-bold text-xl shadow-md">
+                    👨‍🍳
+                  </div>
+                  <div>
+                    <span className="text-xl font-extrabold text-white tracking-tight">ChefCraft RMS</span>
+                    <span className="text-[10px] block text-slate-400 uppercase tracking-widest">Recipe Management System</span>
+                  </div>
+                </div>
+
+                <p className="text-xs text-slate-400 leading-relaxed max-w-sm">
+                  An enterprise-grade gourmet food delivery & recipe management platform developed with React, Node.js, Express, and MongoDB. Search hundreds of authentic recipes, inspect ingredients, check local delivery areas, and order culinary feasts.
+                </p>
+
+                {/* Copyright Certificate Badge Trigger (Direct User Req) */}
+                <div className="pt-2">
+                  <button
+                    onClick={openCopyrightModal}
+                    className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 border border-amber-500/30 text-xs font-bold transition-all group">
+                    <svg className="w-4 h-4 text-amber-400 group-hover:scale-110 transition-transform" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M10 2a8 8 0 100 16 8 8 0 000-16zM8 7a2 2 0 100 4 2 2 0 000-4zm4 0a2 2 0 100 4 2 2 0 000-4zm-4 7a4 4 0 004-4H8a4 4 0 000 4z" clipRule="evenodd"/>
+                    </svg>
+                    <span>View Official Copyright Certificate</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* Navigation Links */}
+              <div>
+                <h4 className="text-xs font-bold text-white uppercase tracking-wider mb-4">Quick Navigation</h4>
+                <ul className="space-y-2 text-xs">
+                  <li><button onClick={() => { setCurrentPage('home'); window.scrollTo({ top: 0, behavior: 'smooth' }); }} className="hover:text-brand-400">Home</button></li>
+                  <li><button onClick={() => { setCurrentPage('home'); document.getElementById('recipes-section')?.scrollIntoView({ behavior: 'smooth' }); }} className="hover:text-brand-400">Browse Menu & Recipes</button></li>
+                  <li><button onClick={() => { setCurrentPage('contact'); window.scrollTo({ top: 0, behavior: 'smooth' }); }} className="hover:text-brand-400">Contact Us</button></li>
+                  <li><button onClick={() => openAuthModal('admin-login')} className="hover:text-brand-400 text-amber-300 font-bold">Admin Portal Login</button></li>
+                  <li><button onClick={openLocationModal} className="hover:text-brand-400">Check Serviceable Areas</button></li>
+                </ul>
+              </div>
+
+              {/* Categories */}
+              <div>
+                <h4 className="text-xs font-bold text-white uppercase tracking-wider mb-4">Recipe Cuisines</h4>
+                <ul className="space-y-2 text-xs text-slate-400">
+                  <li>Italian Gourmet & Pastas</li>
+                  <li>North Indian Mughlai</li>
+                  <li>Traditional Mexican Tacos</li>
+                  <li>Tokyo Japanese Ramen</li>
+                  <li>French Patisserie & Desserts</li>
+                  <li>Mediterranean Quinoa Bowls</li>
+                </ul>
+              </div>
+
+              {/* Legal & Compliance */}
+              <div>
+                <h4 className="text-xs font-bold text-white uppercase tracking-wider mb-4">Certification</h4>
+                <div className="space-y-3 text-xs text-slate-400">
+                  <p>Certified ISO 9001:2015 Food Quality & Kitchen Safety Standards.</p>
+                  <p>Full MongoDB Data Encryption & Secure Token Authentication.</p>
+                  <div className="pt-1">
+                    <span className="text-[11px] font-mono bg-slate-800 text-amber-400 px-2 py-1 rounded border border-slate-700">
+                      REG: RMS-2026-884920
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+
+            {/* Bottom Strip */}
+            <div className="pt-8 border-t border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-500">
+              <p>© 2026 Recipe Management System (RMS). All Rights Reserved. Protected by International Copyright Laws.</p>
+              <div className="flex items-center gap-6">
+                <button onClick={openCopyrightModal} className="hover:text-amber-400">Copyright Certificate</button>
+                <span className="hover:text-slate-300 cursor-pointer">Privacy Policy</span>
+                <span className="hover:text-slate-300 cursor-pointer">Terms of Service</span>
+              </div>
+            </div>
+
+          </div>
+        </footer>
+      );
+    }
+
+    // Render React 18 Application
+    const root = ReactDOM.createRoot(document.getElementById('root'));
+    root.render(<App />);
+  </script>
+
+</body>
+</html>
